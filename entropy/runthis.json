@@ -1,0 +1,7 @@
+{
+    "name" : "runthis",
+    "hostname" : "becameflame.corp.gq1.yahoo.com",
+    "cron-freq" :"*/20 * * * *",
+    "username" : "praneshp",
+    "ssh-key" : "id_rsa"
+}
