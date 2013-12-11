@@ -1,0 +1,5 @@
+# Packages needed for using this package
+sphinx<1.2
+pbr>=0.5.21,<1.0
+croniter>=0.3.3
+
