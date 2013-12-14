@@ -1,7 +1,7 @@
 {
     "name" : "runthis",
     "hostname" : "localhost",
-    "cron-freq" :"*/20 * * * *",
+    "cron-freq" :"*/5 * * * *",
     "username" : "praneshp",
     "ssh-key" : "id_rsa"
 }

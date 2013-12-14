@@ -18,6 +18,7 @@
 import argparse
 import datetime
 import json
+import logging
 import os
 import sys
 import threading
@@ -29,6 +30,7 @@ from entropy import utils
 
 GOOD_MOOD = 1
 SCRIPT_REPO = os.path.dirname(__file__)
+LOG_REPO = os.path.join(os.getcwd(), 'logs')
 
 
 def validate_cfg(file):
@@ -38,41 +40,39 @@ def validate_cfg(file):
 
 
 def do_something():
-    pass
+    with open(path.join(os.getcwd(), 'test'), "a") as op:
+        op.write('starting audit ' + str(datetime.datetime.now()) + '\n')
 
 
 def start_audit(**kwargs):
-    time.sleep(5)
-    with open(os.path.join(os.getcwd(), 'test'), "a") as op:
-        op.write('starting audit ' + str(time.time()))
-
     #TODO(praneshp): Start croniter job here
     now = datetime.datetime.now()
     schedule = kwargs['schedule']
     cron = croniter.croniter(schedule, now)
-    next_iter = cron.get_next(datetime)
+    next_iteration = cron.get_next(datetime.datetime)
     while True:
         now = datetime.datetime.now()
-        if now > next_iter:
+        logging.warning(str(now) + str(next_iteration))
+        if now > next_iteration:
             do_something()
-            next_iter = cron.get_next(schedule, datetime)
-            time.sleep()
+            next_iteration = cron.get_next(datetime.datetime)
         else:
-            time.sleep(60 * 60 * 2)  # sleep 2 hours
+            sleep_time = (next_iteration - now).total_seconds()
+            logging.warning('Will sleep for ' + str(sleep_time))
+            time.sleep(sleep_time)
 
 
 def register_audit(args):
-    print 'Registering audit script'
+    logging.warning('Registering audit script')
 
     #first check if you have all inputs
     if not (args.conf or args.script):
-        print "Need path to script and json"
+        logging.warning('Need path to script and json')
         sys.exit(1)
 
     # Now validate cfg
     conf_file = os.path.join(SCRIPT_REPO, args.conf)
     validate_cfg(conf_file)
-    print conf_file
     # Now pick out relevant info
     kwargs = {}
     with open(conf_file, 'r') as json_data:
@@ -94,11 +94,11 @@ def register_audit(args):
 
 
 def register_repair(args):
-    print 'Registering repair script'
+    logging.warning('Registering repair script')
 
 
 def init():
-    print 'Initializing'
+    logging.warning('Initializing')
 
 
 def parse():
@@ -124,4 +124,6 @@ def parse():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename=os.path.join(
+                        LOG_REPO, 'entropy-' + str(time.time()) + '.log'))
     parse()
