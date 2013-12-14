@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
+
 # Copyright (C) 2013 Yahoo! Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,23 +14,25 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
 import argparse
-import croniter
 import datetime
-from entropy import utils
 import json
 import os
-from os import path
 import sys
 import threading
 import time
-good_mood = 1
-script_repo = os.getcwd()
-ssh_repo = path.join('/Users/praneshp/', '.ssh')
+
+import croniter
+
+from entropy import utils
+
+GOOD_MOOD = 1
+SCRIPT_REPO = os.path.dirname(__file__)
 
 
 def validate_cfg(file):
-    if good_mood == 1:
+    if GOOD_MOOD == 1:
         return True
     return False
 
@@ -40,7 +43,7 @@ def do_something():
 
 def start_audit(**kwargs):
     time.sleep(5)
-    with open(path.join(os.getcwd(), 'test'), "a") as op:
+    with open(os.path.join(os.getcwd(), 'test'), "a") as op:
         op.write('starting audit ' + str(time.time()))
 
     #TODO(praneshp): Start croniter job here
@@ -67,7 +70,7 @@ def register_audit(args):
         sys.exit(1)
 
     # Now validate cfg
-    conf_file = path.join(script_repo, args.conf)
+    conf_file = os.path.join(SCRIPT_REPO, args.conf)
     validate_cfg(conf_file)
     print conf_file
     # Now pick out relevant info
