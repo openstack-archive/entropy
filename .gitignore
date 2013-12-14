@@ -57,6 +57,6 @@ env
 
 # Project-related
 arch/
-entropy/test
 docs/_build
-
+entropy/test
+entropy/logs
