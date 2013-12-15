@@ -1,0 +1,11 @@
+{
+    "name" : "audit",
+    "hostname" : "localhost",
+    "cron-freq" :"*/5 * * * *",
+    "username" : "praneshp",
+    "ssh-key" : "id_rsa",
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "guest",
+    "mq_password": "guest"
+}

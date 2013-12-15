@@ -1,0 +1,10 @@
+{
+    "name" : "react",
+    "hostname" : "localhost",
+    "username" : "praneshp",
+    "ssh-key" : "id_rsa",
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "guest",
+    "mq_password": "guest"
+}

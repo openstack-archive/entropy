@@ -26,7 +26,11 @@ import time
 
 import croniter
 
-from entropy import utils
+sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+sys.path.insert(0, os.path.abspath(os.getcwd()))
+
+import audit
+import utils
 
 GOOD_MOOD = 1
 SCRIPT_REPO = os.path.dirname(__file__)
@@ -34,18 +38,22 @@ LOG_REPO = os.path.join(os.getcwd(), 'logs')
 
 
 def validate_cfg(file):
+    #TODO(praneshp): can do better here
     if GOOD_MOOD == 1:
         return True
     return False
 
 
-def do_something():
-    with open(os.path.join(os.getcwd(), 'test'), "a") as op:
-        op.write('starting audit ' + str(datetime.datetime.now()) + '\n')
+def do_something(**kwargs):
+    # Put a message on the mq
+    audit.send_message(**kwargs)
 
 
 def start_audit(**kwargs):
-    #TODO(praneshp): Start croniter job here
+    #TODO(praneshp): fix bug here, where thread wakes up 0.0003 seconds
+    #before it should, and then sleeps off and cannot wake up in time.
+    #We lose the  message this way.
+
     now = datetime.datetime.now()
     schedule = kwargs['schedule']
     cron = croniter.croniter(schedule, now)
@@ -54,7 +62,7 @@ def start_audit(**kwargs):
         now = datetime.datetime.now()
         logging.warning(str(now) + str(next_iteration))
         if now > next_iteration:
-            do_something()
+            do_something(**kwargs['mq_args'])
             next_iteration = cron.get_next(datetime.datetime)
         else:
             sleep_time = (next_iteration - now).total_seconds()
@@ -73,16 +81,22 @@ def register_audit(args):
     # Now validate cfg
     conf_file = os.path.join(SCRIPT_REPO, args.conf)
     validate_cfg(conf_file)
+
     # Now pick out relevant info
-    kwargs = {}
+    # TODO(praneshp) eventually this must become a function call
     with open(conf_file, 'r') as json_data:
         data = json.load(json_data)
-        kwargs['username'] = data['username']
-        # TODO(praneshp) eventually this must become a function call
-        # somewhere else
-        kwargs['sshkey'] = utils.get_key_path()
-        kwargs['name'] = data['name']
-        kwargs['schedule'] = data['cron-freq']
+        # stuff for the message queue
+        mq_args = {'mq_host': data['mq_host'],
+                   'mq_port': data['mq_port'],
+                   'mq_user': data['mq_user'],
+                   'mq_password': data['mq_password']}
+
+        # general stuff for the audit module
+        kwargs = {'sshkey': utils.get_key_path(),
+                  'name': data['name'],
+                  'schedule': data['cron-freq'],
+                  'mq_args': mq_args}
 
     #Start a thread to run a cron job for this audit script
     t = threading.Thread(name=kwargs['name'], target=start_audit,
@@ -99,6 +113,7 @@ def register_repair(args):
 
 def init():
     logging.warning('Initializing')
+    #TODO(praneshp): come up with  to start all registered reaction scripts
 
 
 def parse():
@@ -124,6 +139,8 @@ def parse():
 
 
 if __name__ == '__main__':
+    #TODO(praneshp): AMQP, json->yaml, reaction scripts(after amqp)
     logging.basicConfig(filename=os.path.join(
                         LOG_REPO, 'entropy-' + str(time.time()) + '.log'))
+    init()
     parse()
