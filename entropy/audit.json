@@ -1,5 +1,5 @@
 {
-    "name" : "runthis",
+    "name" : "audit",
     "hostname" : "localhost",
     "cron-freq" :"*/5 * * * *",
     "username" : "praneshp",
