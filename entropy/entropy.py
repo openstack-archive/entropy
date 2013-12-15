@@ -26,7 +26,12 @@ import time
 
 import croniter
 
-from entropy import utils
+sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
+sys.path.insert(0, os.path.abspath(os.getcwd()))
+
+import audit
+#import react
+import utils
 
 GOOD_MOOD = 1
 SCRIPT_REPO = os.path.dirname(__file__)
@@ -34,14 +39,15 @@ LOG_REPO = os.path.join(os.getcwd(), 'logs')
 
 
 def validate_cfg(file):
+    #TODO(praneshp): can do better here
     if GOOD_MOOD == 1:
         return True
     return False
 
 
 def do_something():
-    with open(os.path.join(os.getcwd(), 'test'), "a") as op:
-        op.write('starting audit ' + str(datetime.datetime.now()) + '\n')
+    # Put a message on the mq
+    audit.send_message()
 
 
 def start_audit(**kwargs):
@@ -99,6 +105,15 @@ def register_repair(args):
 
 def init():
     logging.warning('Initializing')
+#    start_reactors()
+
+
+#def start_reactors():
+    #TODO(praneshp): come up with  to start all registered reaction scripts
+    #t = threading.Thread(name='react', target=react.recv_message())
+    #t.start()
+    #t.join()
+    #print "started"
 
 
 def parse():
@@ -124,6 +139,8 @@ def parse():
 
 
 if __name__ == '__main__':
+    #TODO(praneshp): AMQP, json->yaml, reaction scripts(after amqp)
     logging.basicConfig(filename=os.path.join(
                         LOG_REPO, 'entropy-' + str(time.time()) + '.log'))
+    init()
     parse()
