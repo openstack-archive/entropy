@@ -35,6 +35,7 @@ import utils
 GOOD_MOOD = 1
 SCRIPT_REPO = os.path.dirname(__file__)
 LOG_REPO = os.path.join(os.getcwd(), 'logs')
+LOG = logging.getLogger(__name__)
 
 
 def validate_cfg(file):
@@ -66,16 +67,16 @@ def start_audit(**kwargs):
             next_iteration = cron.get_next(datetime.datetime)
         else:
             sleep_time = (next_iteration - now).total_seconds()
-            logging.warning('Will sleep for ' + str(sleep_time))
+            LOG.warning('Will sleep for ' + str(sleep_time))
             time.sleep(sleep_time)
 
 
 def register_audit(args):
-    logging.warning('Registering audit script')
+    LOG.warning('Registering audit script')
 
     #first check if you have all inputs
     if not (args.conf or args.script):
-        logging.warning('Need path to script and json')
+        LOG.warning('Need path to script and json')
         sys.exit(1)
 
     # Now validate cfg
@@ -108,11 +109,11 @@ def register_audit(args):
 
 
 def register_repair(args):
-    logging.warning('Registering repair script')
+    LOG.warning('Registering repair script')
 
 
 def init():
-    logging.warning('Initializing')
+    LOG.warning('Initializing')
     #TODO(praneshp): come up with  to start all registered reaction scripts
 
 
