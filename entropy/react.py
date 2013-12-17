@@ -23,6 +23,7 @@ from queues import pass_events
 
 SCRIPT_REPO = os.path.dirname(__file__)
 conf_file = os.path.join(SCRIPT_REPO, 'react.json')
+LOG = logging.getLogger(__name__)
 
 
 class SomeConsumer(ConsumerMixin):
@@ -34,7 +35,7 @@ class SomeConsumer(ConsumerMixin):
         return [Consumer(pass_events, callbacks=[self.on_message])]
 
     def on_message(self, body, message):
-        logging.warning("Received message: %r" % body)
+        LOG.warning("Received message: %r" % body)
         message.ack()
         return
 
@@ -46,7 +47,7 @@ def recv_message(**kwargs):
         try:
             SomeConsumer(conn).run()
         except KeyboardInterrupt:
-            logging.warning('Quitting %s' % __name__)
+            LOG.warning('Quitting %s' % __name__)
 
 
 def parse_conf():
@@ -61,6 +62,8 @@ def parse_conf():
 
 
 if __name__ == '__main__':
-    logging.warning('starting react script %s' % __file__)
+    #can log to stdout for now
+    logging.basicConfig()
+    LOG.warning('starting react script %s' % __file__)
     mq_args = parse_conf()
     recv_message(**mq_args)
