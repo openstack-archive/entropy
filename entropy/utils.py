@@ -15,6 +15,8 @@
 # under the License.
 import os
 
+import yaml
+
 
 def get_key_path():
     home_dir = os.path.expanduser("~")
@@ -26,3 +28,8 @@ def get_key_path():
         if os.path.isfile(path):
             return path
     return None
+
+
+def load_yaml(filename):
+    with open(filename, "rb") as fh:
+        return yaml.safe_load(fh.read())
