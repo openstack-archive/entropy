@@ -17,7 +17,6 @@
 
 import argparse
 import datetime
-import json
 import logging
 import os
 import sys
@@ -29,8 +28,8 @@ import croniter
 sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
 sys.path.insert(0, os.path.abspath(os.getcwd()))
 
-import audit
-import utils
+from entropy import audit
+from entropy import utils
 
 GOOD_MOOD = 1
 SCRIPT_REPO = os.path.dirname(__file__)
@@ -85,19 +84,19 @@ def register_audit(args):
 
     # Now pick out relevant info
     # TODO(praneshp) eventually this must become a function call
-    with open(conf_file, 'r') as json_data:
-        data = json.load(json_data)
-        # stuff for the message queue
-        mq_args = {'mq_host': data['mq_host'],
-                   'mq_port': data['mq_port'],
-                   'mq_user': data['mq_user'],
-                   'mq_password': data['mq_password']}
+    data = utils.load_yaml(conf_file)
 
-        # general stuff for the audit module
-        kwargs = {'sshkey': utils.get_key_path(),
-                  'name': data['name'],
-                  'schedule': data['cron-freq'],
-                  'mq_args': mq_args}
+    # stuff for the message queue
+    mq_args = {'mq_host': data['mq_host'],
+               'mq_port': data['mq_port'],
+               'mq_user': data['mq_user'],
+               'mq_password': data['mq_password']}
+
+    # general stuff for the audit module
+    kwargs = {'sshkey': utils.get_key_path(),
+              'name': data['name'],
+              'schedule': data['cron-freq'],
+              'mq_args': mq_args}
 
     #Start a thread to run a cron job for this audit script
     t = threading.Thread(name=kwargs['name'], target=start_audit,
