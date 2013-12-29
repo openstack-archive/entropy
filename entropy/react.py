@@ -24,6 +24,7 @@ from queues import pass_events
 SCRIPT_REPO = os.path.dirname(__file__)
 conf_file = os.path.join(SCRIPT_REPO, 'react.json')
 LOG = logging.getLogger(__name__)
+LOG_REPO = os.path.join(os.path.dirname(__file__), 'logs')
 
 
 class SomeConsumer(ConsumerMixin):
@@ -62,8 +63,7 @@ def parse_conf():
 
 
 if __name__ == '__main__':
-    #can log to stdout for now
-    logging.basicConfig()
+    logging.basicConfig(filename=os.path.join(LOG_REPO, 'react.log'))
     LOG.warning('starting react script %s' % __file__)
     mq_args = parse_conf()
     recv_message(**mq_args)
