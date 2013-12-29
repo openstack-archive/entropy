@@ -7,5 +7,6 @@
     "mq_host": "localhost",
     "mq_port": "5672",
     "mq_user": "guest",
-    "mq_password": "guest"
+    "mq_password": "guest",
+    "script": "runthis.sh"
 }
