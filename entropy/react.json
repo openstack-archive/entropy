@@ -1,5 +1,6 @@
 {
     "name" : "react",
+    "script": "react.py",
     "hostname" : "localhost",
     "username" : "praneshp",
     "ssh-key" : "id_rsa",
