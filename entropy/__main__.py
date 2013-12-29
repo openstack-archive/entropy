@@ -24,6 +24,7 @@ import threading
 import time
 
 import croniter
+import pause
 
 sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
 sys.path.insert(0, os.path.abspath(os.getcwd()))
@@ -44,30 +45,21 @@ def validate_cfg(file):
     return False
 
 
-def do_something(**kwargs):
+def run_audit(**kwargs):
     # Put a message on the mq
     audit.send_message(**kwargs)
 
 
 def start_audit(**kwargs):
-    #TODO(praneshp): fix bug here, where thread wakes up 0.0003 seconds
-    #before it should, and then sleeps off and cannot wake up in time.
-    #We lose the  message this way.
-
     now = datetime.datetime.now()
     schedule = kwargs['schedule']
     cron = croniter.croniter(schedule, now)
     next_iteration = cron.get_next(datetime.datetime)
     while True:
-        now = datetime.datetime.now()
-        LOG.warning(str(now) + str(next_iteration))
-        if now > next_iteration:
-            do_something(**kwargs['mq_args'])
-            next_iteration = cron.get_next(datetime.datetime)
-        else:
-            sleep_time = (next_iteration - now).total_seconds()
-            LOG.warning('Will sleep for ' + str(sleep_time))
-            time.sleep(sleep_time)
+        LOG.warning('Next call at %s' % next_iteration)
+        pause.until(next_iteration)
+        run_audit(**kwargs['mq_args'])
+        next_iteration = cron.get_next(datetime.datetime)
 
 
 def register_audit(args):
