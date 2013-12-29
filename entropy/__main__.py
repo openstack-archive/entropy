@@ -36,6 +36,7 @@ GOOD_MOOD = 1
 SCRIPT_REPO = os.path.dirname(__file__)
 LOG_REPO = os.path.join(os.path.dirname(__file__), 'logs')
 LOG = logging.getLogger(__name__)
+AUDIT_CFG = os.path.join(SCRIPT_REPO, 'audit.cfg')
 
 
 def validate_cfg(file):
@@ -43,6 +44,13 @@ def validate_cfg(file):
     if GOOD_MOOD == 1:
         return True
     return False
+
+
+def add_to_audit_list(**kwargs):
+    with open(AUDIT_CFG, "a") as audit_cfg:
+        audit_cfg.write("\n---\n")
+        for key in kwargs.keys():
+            audit_cfg.write('\t' + key + ': ' + kwargs[key] + '\n')
 
 
 def run_audit(**kwargs):
@@ -66,7 +74,7 @@ def register_audit(args):
     LOG.warning('Registering audit script')
 
     #first check if you have all inputs
-    if not (args.conf or args.script):
+    if not (args.conf or args.script or args.name):
         LOG.warning('Need path to script and json')
         sys.exit(1)
 
@@ -75,8 +83,13 @@ def register_audit(args):
     validate_cfg(conf_file)
 
     # Now pick out relevant info
-    # TODO(praneshp) eventually this must become a function call
     data = utils.load_yaml(conf_file)
+
+    # add this to a cfg file, to recover in case of failure
+    audit_cfg_args = {'name': data['name'],
+                      'script': args.script,
+                      'conf': args.conf}
+    add_to_audit_list(**audit_cfg_args)
 
     # stuff for the message queue
     mq_args = {'mq_host': data['mq_host'],
@@ -95,8 +108,6 @@ def register_audit(args):
                          kwargs=kwargs)
     t.start()
     t.join()
-
-    #TODO(praneshp): add this to a cfg file, to recover in case of failure
 
 
 def register_repair(args):
