@@ -25,12 +25,12 @@ import threading
 
 import croniter
 import pause
+from stevedore import driver
 import yaml
 
 sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
 sys.path.insert(0, os.path.abspath(os.getcwd()))
 
-from entropy import audit
 from entropy import globals
 from entropy import utils
 
@@ -39,12 +39,10 @@ LOG = logging.getLogger(__name__)
 
 def run_scheduler(args):
     LOG.info('Starting Scheduler')
-
     #Start react scripts
     with open(globals.REPAIR_CFG) as cfg:
         scripts = yaml.load_all(cfg)
         for script in scripts:
-            print script
             setup_react(script)
 
     #Start audit scripts
@@ -69,7 +67,6 @@ def add_to_list(type, **kwargs):
 
 def setup_audit(script):
     LOG.warning('Setting up auditor %s' % script['name'])
-
     # Now pick out relevant info
     data = utils.load_yaml(script['conf'])
 
@@ -107,7 +104,28 @@ def setup_react(script):
 
 def run_audit(**kwargs):
     # Put a message on the mq
-    audit.send_message(**kwargs)
+    #TODO(praneshp): this should be the path with register-audit
+    LOG.info('Will search in %s' % globals.AUDIT_SCRIPTS)
+    available_modules = utils.find_module('audit', ['audit'])
+    LOG.info('Found these modules: %s' % available_modules)
+    if not available_modules:
+        LOG.error('No module to load')
+    else:
+        imported_module = utils.import_module(available_modules[0])
+        audit_obj = imported_module.Audit()
+        audit_obj.send_message(**kwargs)
+
+    try:
+        LOG.info('Trying stevedore')
+        mgr = driver.DriverManager(
+            namespace='entropy.audit',
+            name='test',
+            invoke_on_load=True
+        )
+        LOG.info('mgr is %s' % mgr)
+        mgr.driver.test()
+    except Exception as e:
+        LOG.error(e)
 
 
 def start_audit(**kwargs):
@@ -144,7 +162,7 @@ def register_audit(args):
     LOG.warning('Registering audit script %s' % args.name)
 
     #First check if you have all inputs
-    if not (args.conf or args.script or args.name):
+    if not (args.conf or args.name):
         LOG.error('Need path to script and json')
         return
 
