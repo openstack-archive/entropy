@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright (C) 2013 Yahoo! Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,16 +11,28 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
+import abc
 import os
+import logging
+
+from kombu import BrokerConnection
+from kombu.mixins import ConsumerMixin
+
+from entropy import queues
+from entropy.queues import pass_events
 
 
-SCRIPT_REPO = os.path.dirname(__file__)
-# Hardcode for now
-LOG_REPO = os.path.join('/', 'Users', 'praneshp',
-                        'code', 'entropy', 'entropy', 'logs')
-AUDIT_SCRIPTS = os.path.join('/', 'Users', 'praneshp',
-                             'code', 'entropy', 'entropy')
-AUDIT_CFG = os.path.join(SCRIPT_REPO, 'audit.cfg')
-REPAIR_CFG = os.path.join(SCRIPT_REPO, 'repair.cfg')
-log_file = os.path.join(LOG_REPO, 'entropy.log')
+LOG = logging.getLogger(__name__)
+
+
+class AuditBase(object):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def send_message(self, **kwargs):
+        pass
+
+
+    @abc.abstractmethod
+    def test(self):
+        print 'hello world'

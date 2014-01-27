@@ -17,22 +17,28 @@ import datetime
 from kombu import BrokerConnection
 from kombu.common import maybe_declare
 from kombu.pools import producers
+import base
 
-from queues import entropy_exchange
-from queues import PASS_KEY
+from entropy.queues import entropy_exchange
+from entropy.queues import PASS_KEY
 
 
 #TODO(praneshp) : this should be read from a conf file.
 
 
-def send_message(**kwargs):
-    connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
-                                  '%(mq_host)s:%(mq_port)s//' % kwargs)
-    message = {'From': __file__,
-               'Date': str(datetime.datetime.now())}
-    with producers[connection].acquire(block=True) as producer:
-        maybe_declare(entropy_exchange, producer.channel)
-        producer.publish(message,
-                         exchange=entropy_exchange,
-                         routing_key=PASS_KEY,
-                         serializer='json')
+class Audit(base.AuditBase):
+
+    def test(self):
+        print 'hello world'
+
+    def send_message(self, **kwargs):
+        connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
+                                      '%(mq_host)s:%(mq_port)s//' % kwargs)
+        message = {'From': __file__,
+                   'Date': str(datetime.datetime.now())}
+        with producers[connection].acquire(block=True) as producer:
+            maybe_declare(entropy_exchange, producer.channel)
+            producer.publish(message,
+                             exchange=entropy_exchange,
+                             routing_key=PASS_KEY,
+                             serializer='json')
