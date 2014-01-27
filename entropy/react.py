@@ -24,7 +24,7 @@ from queues import pass_events
 SCRIPT_REPO = os.path.dirname(__file__)
 conf_file = os.path.join(SCRIPT_REPO, 'react.json')
 LOG = logging.getLogger(__name__)
-LOG_REPO = os.path.join(os.path.dirname(__file__), 'logs')
+LOG_REPO = os.path.join(os.getcwd(), 'entropy', 'logs')
 
 
 class SomeConsumer(ConsumerMixin):

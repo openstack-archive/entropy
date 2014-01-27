@@ -1,7 +1,7 @@
 {
     "name" : "audit",
     "hostname" : "localhost",
-    "cron-freq" :"*/5 * * * *",
+    "cron-freq" :"*/3 * * * *",
     "username" : "praneshp",
     "ssh-key" : "id_rsa",
     "mq_host": "localhost",
