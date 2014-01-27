@@ -18,13 +18,13 @@ import os
 from kombu import BrokerConnection
 from kombu.mixins import ConsumerMixin
 
-from queues import pass_events
+from entropy.queues import pass_events
 
 
 SCRIPT_REPO = os.path.dirname(__file__)
 conf_file = os.path.join(SCRIPT_REPO, 'react.json')
 LOG = logging.getLogger(__name__)
-LOG_REPO = os.path.join(os.path.dirname(__file__), 'logs')
+LOG_REPO = os.path.join(os.getcwd(), 'entropy', 'logs')
 
 
 class SomeConsumer(ConsumerMixin):
@@ -62,8 +62,12 @@ def parse_conf():
         return mq_args
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(filename=os.path.join(LOG_REPO, 'react.log'))
     LOG.warning('starting react script %s' % __file__)
     mq_args = parse_conf()
     recv_message(**mq_args)
+
+
+if __name__ == '__main__':
+    main()
