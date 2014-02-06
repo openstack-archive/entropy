@@ -25,6 +25,5 @@ class AuditBase(object):
     def send_message(self, **kwargs):
         pass
 
-    @abc.abstractmethod
     def test(self):
         pass
