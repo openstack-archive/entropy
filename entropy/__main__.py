@@ -24,7 +24,6 @@ import threading
 
 import croniter
 import pause
-from stevedore import driver
 import yaml
 
 sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
@@ -68,10 +67,9 @@ def add_to_list(type, **kwargs):
 
 
 def setup_audit(script):
-    LOG.warning('Setting up auditor %s' % script['name'])
+    LOG.warning('Setting up audit script %s', script['name'])
     # Now pick out relevant info
     data = utils.load_yaml(script['conf'])
-
     # stuff for the message queue
     mq_args = {'mq_host': data['mq_host'],
                'mq_port': data['mq_port'],
@@ -79,12 +77,9 @@ def setup_audit(script):
                'mq_password': data['mq_password']}
 
     # general stuff for the audit module
-    kwargs = {'sshkey': utils.get_key_path(),
-              'name': data['name'],
-              'schedule': data['cron-freq'],
-              'mq_args': mq_args,
-              'module': data['module']}
-
+    # TODO(praneshp): later, fix to send only one copy of mq_args
+    kwargs = data
+    kwargs['mq_args'] = mq_args
     #Start a thread to run a cron job for this audit script
     t = threading.Thread(name=kwargs['name'], target=start_audit,
                          kwargs=kwargs)
@@ -93,13 +88,13 @@ def setup_audit(script):
 
 
 def setup_react(script):
-    LOG.warning('Setting up reactor %s' % script['name'])
+    LOG.warning('Setting up reactor %s', script['name'])
 
     data = utils.load_yaml(script['conf'])
     react_script = data['script']
 
     available_modules = utils.find_module(react_script, ['repair'])
-    LOG.info('Found these modules: %s' % available_modules)
+    LOG.info('Found these modules: %s', available_modules)
     if not available_modules:
         LOG.error('No module to load')
     else:
@@ -115,26 +110,19 @@ def setup_react(script):
 def run_audit(**kwargs):
     # Put a message on the mq
     #TODO(praneshp): this should be the path with register-audit
+    #TODO(praneshp): The whole logic in this function should be in
+    # try except blocks
     available_modules = utils.find_module(kwargs['module'], ['audit'])
-    LOG.info('Found these modules: %s' % available_modules)
+    LOG.info('Found these modules: %s', available_modules)
     if not available_modules:
         LOG.error('No module to load')
     else:
         imported_module = utils.import_module(available_modules[0])
         audit_obj = imported_module.Audit()
-        audit_obj.send_message(**kwargs['mq_args'])
-
-    try:
-        LOG.info('Trying stevedore')
-        mgr = driver.DriverManager(
-            namespace='entropy.audit',
-            name='test',
-            invoke_on_load=True
-        )
-        LOG.info('mgr is %s' % mgr)
-        mgr.driver.test()
-    except Exception as e:
-        LOG.error(e)
+        try:
+            audit_obj.send_message(**kwargs)
+        except Exception as e:
+            LOG.error(e)
 
 
 def start_audit(**kwargs):
@@ -143,7 +131,7 @@ def start_audit(**kwargs):
     cron = croniter.croniter(schedule, now)
     next_iteration = cron.get_next(datetime.datetime)
     while True:
-        LOG.warning('Next call at %s' % next_iteration)
+        LOG.warning('Next call at %s', next_iteration)
         pause.until(next_iteration)
         run_audit(**kwargs)
         next_iteration = cron.get_next(datetime.datetime)
@@ -168,7 +156,7 @@ def audit_present(name):
 
 def register_audit(args):
     #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
-    LOG.warning('Registering audit script %s' % args.name)
+    LOG.warning('Registering audit script %s', args.name)
 
     #First check if you have all inputs
     if not (args.conf or args.name):
@@ -184,12 +172,12 @@ def register_audit(args):
     audit_cfg_args = {'name': args.name,
                       'conf': args.conf}
     add_to_list('audit', **audit_cfg_args)
-    LOG.info('Registered audit %s' % args.name)
+    LOG.info('Registered audit %s', args.name)
 
 
 def register_repair(args):
     #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
-    LOG.warning('Registering repair script %s' % args.name)
+    LOG.warning('Registering repair script %s', args.name)
 
      #First check if you have all inputs
     if not (args.conf or args.name):
@@ -205,7 +193,7 @@ def register_repair(args):
     repair_cfg_args = {'name': args.name,
                        'conf': args.conf}
     add_to_list('repair', **repair_cfg_args)
-    LOG.info('Registered repair script %s' % args.name)
+    LOG.info('Registered repair script %s', args.name)
 
 
 def parse():
