@@ -24,3 +24,4 @@ FAIL_KEY = 'fail'
 entropy_exchange = Exchange('entropy_exchage', type='fanout')
 pass_events = Queue('pass', entropy_exchange, routing_key=PASS_KEY)
 fail_events = Queue('fail', entropy_exchange, routing_key=FAIL_KEY)
+vm_count_events = Queue('vmcount', entropy_exchange, routing_key='vmcount')
