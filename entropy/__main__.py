@@ -68,10 +68,9 @@ def add_to_list(type, **kwargs):
 
 
 def setup_audit(script):
-    LOG.warning('Setting up auditor %s' % script['name'])
+    LOG.warning('Setting up audit script %s' % script['name'])
     # Now pick out relevant info
     data = utils.load_yaml(script['conf'])
-
     # stuff for the message queue
     mq_args = {'mq_host': data['mq_host'],
                'mq_port': data['mq_port'],
@@ -79,12 +78,9 @@ def setup_audit(script):
                'mq_password': data['mq_password']}
 
     # general stuff for the audit module
-    kwargs = {'sshkey': utils.get_key_path(),
-              'name': data['name'],
-              'schedule': data['cron-freq'],
-              'mq_args': mq_args,
-              'module': data['module']}
-
+    # TODO(praneshp): later, fix to send only one copy of mq_args
+    kwargs = data
+    kwargs['mq_args'] = mq_args
     #Start a thread to run a cron job for this audit script
     t = threading.Thread(name=kwargs['name'], target=start_audit,
                          kwargs=kwargs)
@@ -115,6 +111,8 @@ def setup_react(script):
 def run_audit(**kwargs):
     # Put a message on the mq
     #TODO(praneshp): this should be the path with register-audit
+    #TODO(praneshp): The whole logic in this function should be in
+    # try except blocks
     available_modules = utils.find_module(kwargs['module'], ['audit'])
     LOG.info('Found these modules: %s' % available_modules)
     if not available_modules:
@@ -122,7 +120,7 @@ def run_audit(**kwargs):
     else:
         imported_module = utils.import_module(available_modules[0])
         audit_obj = imported_module.Audit()
-        audit_obj.send_message(**kwargs['mq_args'])
+        audit_obj.send_message(**kwargs)
 
     try:
         LOG.info('Trying stevedore')
