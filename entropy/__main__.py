@@ -82,7 +82,8 @@ def setup_audit(script):
     kwargs = {'sshkey': utils.get_key_path(),
               'name': data['name'],
               'schedule': data['cron-freq'],
-              'mq_args': mq_args}
+              'mq_args': mq_args,
+              'module': data['module']}
 
     #Start a thread to run a cron job for this audit script
     t = threading.Thread(name=kwargs['name'], target=start_audit,
@@ -111,14 +112,14 @@ def setup_react(script):
 def run_audit(**kwargs):
     # Put a message on the mq
     #TODO(praneshp): this should be the path with register-audit
-    available_modules = utils.find_module('audit', ['audit'])
+    available_modules = utils.find_module(kwargs['module'], ['audit'])
     LOG.info('Found these modules: %s' % available_modules)
     if not available_modules:
         LOG.error('No module to load')
     else:
         imported_module = utils.import_module(available_modules[0])
         audit_obj = imported_module.Audit()
-        audit_obj.send_message(**kwargs)
+        audit_obj.send_message(**kwargs['mq_args'])
 
     try:
         LOG.info('Trying stevedore')
@@ -141,7 +142,7 @@ def start_audit(**kwargs):
     while True:
         LOG.warning('Next call at %s' % next_iteration)
         pause.until(next_iteration)
-        run_audit(**kwargs['mq_args'])
+        run_audit(**kwargs)
         next_iteration = cron.get_next(datetime.datetime)
 
 
