@@ -14,15 +14,12 @@
 
 import datetime
 import logging
-import sys
 
 from kombu import BrokerConnection
 from kombu.common import maybe_declare
 from kombu.pools import producers
 
 
-sys.path.insert(0,
-                '/usr/local/Cellar/libvirt/1.1.3/lib/python2.7/site-packages')
 import base
 from entropy.queues import entropy_exchange
 import libvirt
