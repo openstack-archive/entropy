@@ -35,39 +35,47 @@ from entropy import utils
 LOG = logging.getLogger(__name__)
 
 
-def run_scheduler(args):
+def run_scheduler(args, running_audits=None, running_repairs=None):
     LOG.info('Starting Scheduler')
+    running_audits = []
+    running_repairs = []
+
     #Start react scripts. No need to join because all the react scripts are
     #designed to be looping forever, for now.
     react_threads = []
     with open(globals.REPAIR_CFG) as cfg:
         scripts = yaml.load_all(cfg)
         for script in scripts:
-            t = setup_react(script)
-            react_threads.append(t)
+            if script['name'] not in running_repairs:
+                t = setup_react(script, running_repairs)
+                react_threads.append(t)
 
     #Start audit scripts
-    threads = []
+    audit_threads = []
     with open(globals.AUDIT_CFG, 'r') as cfg:
         scripts = yaml.load_all(cfg)
         for script in scripts:
-            t = setup_audit(script)
-            threads.append(t)
-
+            if script['name'] not in running_audits:
+                t = setup_audit(script, running_audits)
+                audit_threads.append(t)
+    LOG.warning('Running audits %s', ', '.join(running_audits))
+    LOG.warning('Running repairs %s', ', '.join(running_repairs))
     # Now join on the threads so you run forever
-    [t.join() for t in threads]
+    [t.join() for t in audit_threads]
 
 
-def add_to_list(type, **kwargs):
-    cfg_file = globals.AUDIT_CFG if type == 'audit' else globals.REPAIR_CFG
+def add_to_list(script_type, **kwargs):
+    cfg_file = globals.AUDIT_CFG if script_type == 'audit'\
+        else globals.REPAIR_CFG
     with open(cfg_file, "a") as cfg:
         cfg.write(yaml.dump(kwargs, canonical=False,
                             default_flow_style=False,
                             explicit_start=True))
 
 
-def setup_audit(script):
+def setup_audit(script, running_audits):
     LOG.warning('Setting up audit script %s', script['name'])
+
     # Now pick out relevant info
     data = utils.load_yaml(script['conf'])
     # stuff for the message queue
@@ -80,6 +88,10 @@ def setup_audit(script):
     # TODO(praneshp): later, fix to send only one copy of mq_args
     kwargs = data
     kwargs['mq_args'] = mq_args
+
+    # add this job to list of running audits
+    running_audits.append(script['name'])
+
     #Start a thread to run a cron job for this audit script
     t = threading.Thread(name=kwargs['name'], target=start_audit,
                          kwargs=kwargs)
@@ -87,9 +99,10 @@ def setup_audit(script):
     return t
 
 
-def setup_react(script):
+def setup_react(script, running_repairs):
     LOG.warning('Setting up reactor %s', script['name'])
 
+    # Pick out relevant info
     data = utils.load_yaml(script['conf'])
     react_script = data['script']
 
@@ -101,6 +114,10 @@ def setup_react(script):
         imported_module = utils.import_module(available_modules[0])
         kwargs = data
         kwargs['conf'] = script['conf']
+
+        # add this job to list of running audits
+        running_repairs.append(script['name'])
+
         t = threading.Thread(name=data['name'], target=imported_module.main,
                              kwargs=kwargs)
         t.start()
@@ -174,6 +191,8 @@ def register_audit(args):
     add_to_list('audit', **audit_cfg_args)
     LOG.info('Registered audit %s', args.name)
 
+    #Add to scheduler thread if scheduler is running
+
 
 def register_repair(args):
     #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
@@ -194,6 +213,8 @@ def register_repair(args):
                        'conf': args.conf}
     add_to_list('repair', **repair_cfg_args)
     LOG.info('Registered repair script %s', args.name)
+
+    #Add to scheduler thread if scheduler is running
 
 
 def parse():
