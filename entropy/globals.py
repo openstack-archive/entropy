@@ -21,6 +21,7 @@ import os
 SCRIPT_REPO = os.path.dirname(__file__)
 # Hardcode for now
 LOG_REPO = os.path.join(os.getcwd(), 'entropy', 'logs')
-AUDIT_CFG = os.path.join(SCRIPT_REPO, 'audit.cfg')
-REPAIR_CFG = os.path.join(SCRIPT_REPO, 'repair.cfg')
+CFG_DIR = os.path.join(SCRIPT_REPO, 'cfg')
+AUDIT_CFG = os.path.join(CFG_DIR, 'audit.cfg')
+REPAIR_CFG = os.path.join(CFG_DIR, 'repair.cfg')
 log_file = os.path.join(LOG_REPO, 'entropy.log')

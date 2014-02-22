@@ -24,6 +24,8 @@ import threading
 
 import croniter
 import pause
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 import yaml
 
 sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
@@ -39,6 +41,11 @@ def run_scheduler(args, running_audits=None, running_repairs=None):
     LOG.info('Starting Scheduler')
     running_audits = []
     running_repairs = []
+
+    # Start watchdog thread. If any new audit/react scripts are added,
+    # detect and add.
+    # Currently these threads will listen forever so no need to join
+    watchdog_thread = start_watchdog(globals.CFG_DIR)
 
     #Start react scripts. No need to join because all the react scripts are
     #designed to be looping forever, for now.
@@ -61,7 +68,36 @@ def run_scheduler(args, running_audits=None, running_repairs=None):
     LOG.warning('Running audits %s', ', '.join(running_audits))
     LOG.warning('Running repairs %s', ', '.join(running_repairs))
     # Now join on the threads so you run forever
-    [t.join() for t in audit_threads]
+    [t.join() for t in audit_threads + [watchdog_thread]]
+
+
+def audit_modified():
+    LOG.warning('Audit CFG changed')
+
+
+def repair_modified():
+    LOG.warning('repair CFG changed')
+
+
+class WatchdogHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        LOG.warning('Monitored file changed %s', event.src_path)
+        if event.src_path == globals.AUDIT_CFG:
+            audit_modified()
+        elif event.src_path == globals.REPAIR_CFG:
+            repair_modified()
+
+
+def start_watchdog(dir_to_watch):
+    return watch_dir_for_change(dir_to_watch)
+
+
+def watch_dir_for_change(dir_to_watch):
+    event_handler = WatchdogHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=dir_to_watch, recursive=True)
+    observer.start()
+    return observer
 
 
 def add_to_list(script_type, **kwargs):
