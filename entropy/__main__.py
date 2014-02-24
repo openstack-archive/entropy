@@ -35,12 +35,12 @@ from entropy import globals
 from entropy import utils
 
 LOG = logging.getLogger(__name__)
+running_audits = []
+running_repairs = []
 
 
-def run_scheduler(args, running_audits=None, running_repairs=None):
+def run_scheduler(args):
     LOG.info('Starting Scheduler')
-    running_audits = []
-    running_repairs = []
 
     # Start watchdog thread. If any new audit/react scripts are added,
     # detect and add.
@@ -49,26 +49,32 @@ def run_scheduler(args, running_audits=None, running_repairs=None):
 
     #Start react scripts. No need to join because all the react scripts are
     #designed to be looping forever, for now.
-    react_threads = []
-    with open(globals.REPAIR_CFG) as cfg:
-        scripts = yaml.load_all(cfg)
-        for script in scripts:
-            if script['name'] not in running_repairs:
-                t = setup_react(script, running_repairs)
-                react_threads.append(t)
+    start_scripts('repair')
+    LOG.warning('Running repairs %s', ', '.join(running_repairs))
 
     #Start audit scripts
-    audit_threads = []
-    with open(globals.AUDIT_CFG, 'r') as cfg:
-        scripts = yaml.load_all(cfg)
-        for script in scripts:
-            if script['name'] not in running_audits:
-                t = setup_audit(script, running_audits)
-                audit_threads.append(t)
+    audit_threads = start_scripts('audit')
     LOG.warning('Running audits %s', ', '.join(running_audits))
-    LOG.warning('Running repairs %s', ', '.join(running_repairs))
+
     # Now join on the threads so you run forever
     [t.join() for t in audit_threads + [watchdog_thread]]
+
+
+def start_scripts(script_type):
+    if script_type == 'audit':
+        (running_scripts, setup_func) = (running_audits, setup_audit)
+    else:
+        (running_scripts, setup_func) = (running_repairs, setup_react)
+    cfg = globals.AUDIT_CFG if script_type == 'audit' \
+        else globals.REPAIR_CFG
+    threads = []
+    with open(cfg) as cfg_file:
+        scripts = yaml.load_all(cfg_file)
+        for script in scripts:
+            if script['name'] not in running_scripts:
+                t = setup_func(script)
+                threads.append(t)
+    return threads
 
 
 def audit_modified():
@@ -111,7 +117,7 @@ def add_to_list(script_type, **kwargs):
                             explicit_start=True))
 
 
-def setup_audit(script, running_audits):
+def setup_audit(script):
     LOG.warning('Setting up audit script %s', script['name'])
 
     # Now pick out relevant info
@@ -137,7 +143,7 @@ def setup_audit(script, running_audits):
     return t
 
 
-def setup_react(script, running_repairs):
+def setup_react(script):
     LOG.warning('Setting up reactor %s', script['name'])
 
     # Pick out relevant info
