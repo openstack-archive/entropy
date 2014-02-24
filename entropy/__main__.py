@@ -50,11 +50,9 @@ def run_scheduler(args):
     #Start react scripts. No need to join because all the react scripts are
     #designed to be looping forever, for now.
     start_scripts('repair')
-    LOG.warning('Running repairs %s', ', '.join(running_repairs))
 
     #Start audit scripts
     audit_threads = start_scripts('audit')
-    LOG.warning('Running audits %s', ', '.join(running_audits))
 
     # Now join on the threads so you run forever
     [t.join() for t in audit_threads + [watchdog_thread]]
@@ -74,15 +72,23 @@ def start_scripts(script_type):
             if script['name'] not in running_scripts:
                 t = setup_func(script)
                 threads.append(t)
+    LOG.warning('Running %s scripts %s', script_type,
+                ', '.join(running_scripts))
     return threads
 
 
+# TODO(praneshp): For now, only addition of scripts. Take care of
+# deletion later
+
 def audit_modified():
     LOG.warning('Audit CFG changed')
+    new_audits = start_scripts('audit')
+    [t.join() for t in new_audits]
 
 
 def repair_modified():
     LOG.warning('repair CFG changed')
+    start_scripts('repair')
 
 
 class WatchdogHandler(FileSystemEventHandler):
