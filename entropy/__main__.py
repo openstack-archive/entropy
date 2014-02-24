@@ -50,11 +50,9 @@ def run_scheduler(args):
     #Start react scripts. No need to join because all the react scripts are
     #designed to be looping forever, for now.
     start_scripts('repair')
-    LOG.warning('Running repairs %s', ', '.join(running_repairs))
 
     #Start audit scripts
     audit_threads = start_scripts('audit')
-    LOG.warning('Running audits %s', ', '.join(running_audits))
 
     # Now join on the threads so you run forever
     [t.join() for t in audit_threads + [watchdog_thread]]
@@ -68,21 +66,28 @@ def start_scripts(script_type):
     cfg = globals.AUDIT_CFG if script_type == 'audit' \
         else globals.REPAIR_CFG
     threads = []
-    with open(cfg) as cfg_file:
-        scripts = yaml.load_all(cfg_file)
-        for script in scripts:
-            if script['name'] not in running_scripts:
-                t = setup_func(script)
-                threads.append(t)
+    scripts = utils.load_yaml(cfg)
+    for script in scripts:
+        if script['name'] not in running_scripts:
+            t = setup_func(script)
+            threads.append(t)
+    LOG.warning('Running %s scripts %s', script_type,
+                ', '.join(running_scripts))
     return threads
 
 
+# TODO(praneshp): For now, only addition of scripts. Take care of
+# deletion later
+
 def audit_modified():
     LOG.warning('Audit CFG changed')
+    new_audits = start_scripts('audit')
+    [t.join() for t in new_audits]
 
 
 def repair_modified():
     LOG.warning('repair CFG changed')
+    start_scripts('repair')
 
 
 class WatchdogHandler(FileSystemEventHandler):
@@ -121,7 +126,7 @@ def setup_audit(script):
     LOG.warning('Setting up audit script %s', script['name'])
 
     # Now pick out relevant info
-    data = utils.load_yaml(script['conf'])
+    data = dict(utils.load_yaml(script['conf']).next())
     # stuff for the message queue
     mq_args = {'mq_host': data['mq_host'],
                'mq_port': data['mq_port'],
@@ -147,7 +152,7 @@ def setup_react(script):
     LOG.warning('Setting up reactor %s', script['name'])
 
     # Pick out relevant info
-    data = utils.load_yaml(script['conf'])
+    data = dict(utils.load_yaml(script['conf']).next())
     react_script = data['script']
 
     available_modules = utils.find_module(react_script, ['repair'])
@@ -200,7 +205,7 @@ def start_audit(**kwargs):
 
 def check_duplicate(name, cfg_file):
     with open(cfg_file, 'r') as cfg:
-        scripts = yaml.load_all(cfg)
+        scripts = utils.load_yaml(cfg)
         names = [script['name'] for script in scripts]
         if name in names:
             return True
