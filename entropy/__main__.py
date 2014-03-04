@@ -80,13 +80,13 @@ def start_scripts(script_type):
 # deletion later
 
 def audit_modified():
-    LOG.warning('Audit CFG changed')
+    LOG.warning('Audit configuration changed')
     new_audits = start_scripts('audit')
     [t.join() for t in new_audits]
 
 
 def repair_modified():
-    LOG.warning('repair CFG changed')
+    LOG.warning('Repair onfiguration changed')
     start_scripts('repair')
 
 
