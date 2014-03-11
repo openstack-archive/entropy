@@ -25,3 +25,4 @@ CFG_DIR = os.path.join(SCRIPT_REPO, 'cfg')
 AUDIT_CFG = os.path.join(CFG_DIR, 'audit.cfg')
 REPAIR_CFG = os.path.join(CFG_DIR, 'repair.cfg')
 log_file = os.path.join(LOG_REPO, 'entropy.log')
+MAX_WORKERS = 8

@@ -16,11 +16,11 @@
 # under the License.
 
 import argparse
+from concurrent.futures import ProcessPoolExecutor
 import datetime
 import logging
 import os
 import sys
-import threading
 
 import croniter
 import pause
@@ -37,43 +37,42 @@ from entropy import utils
 LOG = logging.getLogger(__name__)
 running_audits = []
 running_repairs = []
+executor = ProcessPoolExecutor(max_workers=globals.MAX_WORKERS)
 
 
 def run_scheduler(args):
     LOG.info('Starting Scheduler')
-
     # Start watchdog thread. If any new audit/react scripts are added,
     # detect and add.
-    # Currently these threads will listen forever so no need to join
+    # TODO(praneshp): Look into how to do this with threadpoolexecutor?
     watchdog_thread = start_watchdog(globals.CFG_DIR)
 
-    #Start react scripts. No need to join because all the react scripts are
-    #designed to be looping forever, for now.
-    start_scripts('repair')
+    # Start react and audit scripts.
+    react_futures = start_scripts('repair')  # noqa
+    audit_futures = start_scripts('audit')  # noqa
 
-    #Start audit scripts
-    audit_threads = start_scripts('audit')
-
-    # Now join on the threads so you run forever
-    [t.join() for t in audit_threads + [watchdog_thread]]
-
+    watchdog_thread.join()
 
 def start_scripts(script_type):
+    # TODO(praneshp):audit threads can use thread pool, reacts can use process?
+
     if script_type == 'audit':
         (running_scripts, setup_func) = (running_audits, setup_audit)
-    else:
+        cfg = globals.AUDIT_CFG
+    elif script_type == 'repair':
         (running_scripts, setup_func) = (running_repairs, setup_react)
-    cfg = globals.AUDIT_CFG if script_type == 'audit' \
-        else globals.REPAIR_CFG
-    threads = []
+        cfg = globals.REPAIR_CFG
+
     scripts = utils.load_yaml(cfg)
+    futures = []
+
     for script in scripts:
         if script['name'] not in running_scripts:
-            t = setup_func(script)
-            threads.append(t)
+            futures.append(setup_func(script))
+
     LOG.warning('Running %s scripts %s', script_type,
                 ', '.join(running_scripts))
-    return threads
+    return futures
 
 
 # TODO(praneshp): For now, only addition of scripts. Take care of
@@ -141,11 +140,9 @@ def setup_audit(script):
     # add this job to list of running audits
     running_audits.append(script['name'])
 
-    #Start a thread to run a cron job for this audit script
-    t = threading.Thread(name=kwargs['name'], target=start_audit,
-                         kwargs=kwargs)
-    t.start()
-    return t
+    # start a process for this audit script
+    future = executor.submit(start_audit, **kwargs)
+    return future
 
 
 def setup_react(script):
@@ -167,10 +164,8 @@ def setup_react(script):
         # add this job to list of running audits
         running_repairs.append(script['name'])
 
-        t = threading.Thread(name=data['name'], target=imported_module.main,
-                             kwargs=kwargs)
-        t.start()
-        return t
+        future = executor.submit(imported_module.main, **kwargs)
+        return future
 
 
 def run_audit(**kwargs):
@@ -192,6 +187,7 @@ def run_audit(**kwargs):
 
 
 def start_audit(**kwargs):
+    LOG.info("Starting audit for %s", kwargs['name'])
     now = datetime.datetime.now()
     schedule = kwargs['schedule']
     cron = croniter.croniter(schedule, now)
@@ -240,8 +236,6 @@ def register_audit(args):
     add_to_list('audit', **audit_cfg_args)
     LOG.info('Registered audit %s', args.name)
 
-    #Add to scheduler thread if scheduler is running
-
 
 def register_repair(args):
     #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
@@ -262,8 +256,6 @@ def register_repair(args):
                        'conf': args.conf}
     add_to_list('repair', **repair_cfg_args)
     LOG.info('Registered repair script %s', args.name)
-
-    #Add to scheduler thread if scheduler is running
 
 
 def parse():
