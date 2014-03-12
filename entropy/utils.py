@@ -37,7 +37,6 @@ def get_key_path():
 
 
 def load_yaml(filename):
-    print filename
     with open(filename, "rb") as fh:
         return yaml.safe_load_all(fh.read())
 
