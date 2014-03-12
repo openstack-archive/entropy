@@ -16,7 +16,7 @@
 # under the License.
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import datetime
 import logging
 import os
@@ -37,7 +37,8 @@ from entropy import utils
 LOG = logging.getLogger(__name__)
 running_audits = []
 running_repairs = []
-executor = ProcessPoolExecutor(max_workers=globals.MAX_WORKERS)
+executor = ThreadPoolExecutor(max_workers=globals.MAX_WORKERS)
+all_futures = []
 
 
 def run_scheduler(args):
@@ -48,15 +49,11 @@ def run_scheduler(args):
     watchdog_thread = start_watchdog(globals.CFG_DIR)
 
     # Start react and audit scripts.
-    react_futures = start_scripts('repair')  # noqa
-    audit_futures = start_scripts('audit')  # noqa
-
-    watchdog_thread.join()
+    all_futures.append(start_scripts('repair'))  # noqa
+    all_futures.append(start_scripts('audit'))  # noqa
 
 
 def start_scripts(script_type):
-    # TODO(praneshp):audit threads can use thread pool, reacts can use process?
-
     if script_type == 'audit':
         (running_scripts, setup_func) = (running_audits, setup_audit)
         cfg = globals.AUDIT_CFG
@@ -70,7 +67,6 @@ def start_scripts(script_type):
     for script in scripts:
         if script['name'] not in running_scripts:
             futures.append(setup_func(script))
-
     LOG.warning('Running %s scripts %s', script_type,
                 ', '.join(running_scripts))
     return futures
