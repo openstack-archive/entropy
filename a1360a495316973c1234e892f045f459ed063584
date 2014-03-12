@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Joshua Harlow <harlowja@gmail.com>
+Approved+1: Pranesh Pandurangan <praneshpg@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Wed, 12 Mar 2014 06:12:35 +0000
+Reviewed-on: https://review.openstack.org/79811
+Project: stackforge/entropy
+Branch: refs/heads/master
