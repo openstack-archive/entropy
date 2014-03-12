@@ -201,10 +201,9 @@ def start_audit(**kwargs):
 
 
 def check_duplicate(name, cfg_file):
-    with open(cfg_file, 'r') as cfg:
-        scripts = utils.load_yaml(cfg)
-        names = [script['name'] for script in scripts]
-        if name in names:
+    scripts = utils.load_yaml(cfg_file)
+    names = [script['name'] for script in scripts]
+    if name in names:
             return True
     return False
 
