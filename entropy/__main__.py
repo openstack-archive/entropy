@@ -24,8 +24,6 @@ import sys
 
 import croniter
 import pause
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
 import yaml
 
 sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
@@ -77,8 +75,7 @@ def start_scripts(script_type):
 
 def audit_modified():
     LOG.warning('Audit configuration changed')
-    new_audits = start_scripts('audit')
-    [t.join() for t in new_audits]
+    all_futures.append(start_scripts('audit'))
 
 
 def repair_modified():
@@ -86,25 +83,10 @@ def repair_modified():
     start_scripts('repair')
 
 
-class WatchdogHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        LOG.warning('Monitored file changed %s', event.src_path)
-        if event.src_path == globals.AUDIT_CFG:
-            audit_modified()
-        elif event.src_path == globals.REPAIR_CFG:
-            repair_modified()
-
-
 def start_watchdog(dir_to_watch):
-    return watch_dir_for_change(dir_to_watch)
-
-
-def watch_dir_for_change(dir_to_watch):
-    event_handler = WatchdogHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path=dir_to_watch, recursive=True)
-    observer.start()
-    return observer
+    event_fn = {globals.AUDIT_CFG: audit_modified,
+                globals.REPAIR_CFG: repair_modified}
+    return utils.watch_dir_for_change(dir_to_watch, event_fn)
 
 
 def add_to_list(script_type, **kwargs):
@@ -196,6 +178,7 @@ def start_audit(**kwargs):
         next_iteration = cron.get_next(datetime.datetime)
 
 
+# TODO(praneshp) move this to utils
 def check_duplicate(name, cfg_file):
     scripts = utils.load_yaml(cfg_file)
     names = [script['name'] for script in scripts]
