@@ -18,6 +18,8 @@ import logging
 import os
 import sys
 
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 import yaml
 
 
@@ -83,3 +85,20 @@ def find_module(base_name, search_paths, required_attrs=None):
     LOG.info("Found %s with attributes %s in %s", base_name,
              required_attrs, found_places)
     return found_places
+
+
+class WatchdogHandler(FileSystemEventHandler):
+    def __init__(self, event_fn):
+        self.event_fn = event_fn
+
+    def on_modified(self, event):
+        LOG.warning('Monitored file changed %s', event.src_path)
+        self.event_fn[event.src_path]()
+
+
+def watch_dir_for_change(dir_to_watch, event_fn):
+    event_handler = WatchdogHandler(event_fn)
+    observer = Observer()
+    observer.schedule(event_handler, path=dir_to_watch, recursive=True)
+    observer.start()
+    return observer
