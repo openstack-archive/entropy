@@ -31,20 +31,20 @@ sys.path.insert(0, os.path.abspath(os.getcwd()))
 
 from entropy import globals
 from entropy import utils
+from engine import Engine
 
 LOG = logging.getLogger(__name__)
 running_audits = []
 running_repairs = []
 executor = ThreadPoolExecutor(max_workers=globals.MAX_WORKERS)
 all_futures = []
+entropy_engine = None
 
 
 def run_scheduler(args):
     LOG.info('Starting Scheduler')
     # Start watchdog thread. If any new audit/react scripts are added,
     # detect and add.
-    # TODO(praneshp): Look into how to do this with threadpoolexecutor?
-    watchdog_thread = start_watchdog(globals.CFG_DIR)  # noqa
 
     # Start react and audit scripts.
     all_futures.append(start_scripts('repair'))
@@ -68,25 +68,6 @@ def start_scripts(script_type):
     LOG.warning('Running %s scripts %s', script_type,
                 ', '.join(running_scripts))
     return futures
-
-
-# TODO(praneshp): For now, only addition of scripts. Take care of
-# deletion later
-
-def audit_modified():
-    LOG.warning('Audit configuration changed')
-    all_futures.append(start_scripts('audit'))
-
-
-def repair_modified():
-    LOG.warning('Repair configuration changed')
-    start_scripts('repair')
-
-
-def start_watchdog(dir_to_watch):
-    event_fn = {globals.AUDIT_CFG: audit_modified,
-                globals.REPAIR_CFG: repair_modified}
-    return utils.watch_dir_for_change(dir_to_watch, event_fn)
 
 
 def add_to_list(script_type, **kwargs):
@@ -237,6 +218,13 @@ def register_repair(args):
     LOG.info('Registered repair script %s', args.name)
 
 
+def start_engine(args):
+    global entropy_engine
+    entropy_engine = Engine(args.name)
+    watchdog_thread = entropy_engine.start_watchdog(globals.CFG_DIR)  # noqa
+    watchdog_thread.join()
+
+
 def parse():
     parser = argparse.ArgumentParser(description='entropy')
     subparsers = parser.add_subparsers(dest='command',
@@ -266,6 +254,11 @@ def parse():
                                              help='Start scheduler')
     scheduler_parser.add_argument('-v', dest='verbose', help='Verbosity')
     scheduler_parser.set_defaults(func=run_scheduler)
+
+    scheduler_parser = subparsers.add_parser('start-engine',
+                                             help='Start an entropy engine')
+    scheduler_parser.add_argument('-n', dest='name', help='Name')
+    scheduler_parser.set_defaults(func=start_engine)
 
     args = parser.parse_args()
     args.func(args)
