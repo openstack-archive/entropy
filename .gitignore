@@ -61,3 +61,4 @@ docs/_build
 entropy/test
 entropy/logs
 entropy/audit/*.json
+entropy/cfg
