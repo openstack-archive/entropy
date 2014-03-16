@@ -22,7 +22,6 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import yaml
 
-
 LOG = logging.getLogger(__name__)
 
 
@@ -92,8 +91,10 @@ class WatchdogHandler(FileSystemEventHandler):
         self.event_fn = event_fn
 
     def on_modified(self, event):
-        LOG.warning('Monitored file changed %s', event.src_path)
-        self.event_fn[event.src_path]()
+        if event.src_path in self.event_fn.keys():
+            self.event_fn[event.src_path]()
+        else:
+            LOG.error('no associated function for %s', event.src_path)
 
 
 def watch_dir_for_change(dir_to_watch, event_fn):
@@ -102,3 +103,12 @@ def watch_dir_for_change(dir_to_watch, event_fn):
     observer.schedule(event_handler, path=dir_to_watch, recursive=True)
     observer.start()
     return observer
+
+
+# TODO(praneshp) move this to utils
+def check_duplicate(name, cfg_file):
+    scripts = load_yaml(cfg_file)
+    names = [script['name'] for script in scripts]
+    if name in names:
+        return True
+    return False
