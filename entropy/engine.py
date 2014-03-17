@@ -29,19 +29,19 @@ LOG = logging.getLogger(__name__)
 
 
 class Engine(object):
-    def __init__(self, args):
+    def __init__(self, name, **cfg_data):
         # constants
         # TODO(praneshp): Hardcode for now, could/should be cmdline input
         self.max_workers = 8
         self.audit_type = 'audit'
         self.repair_type = 'repair'
         # engine variables
-        self.name = args.name
-        self.audit_cfg = args.audit_cfg
-        self.repair_cfg = args.repair_cfg
+        self.name = name
+        self.audit_cfg = cfg_data['audit_cfg']
+        self.repair_cfg = cfg_data['repair_cfg']
         # TODO(praneshp): Assuming cfg files are in 1 dir. Change later
         self.cfg_dir = os.path.dirname(self.audit_cfg)
-        self.log_file = args.log_file
+        self.log_file = cfg_data['log_file']
         self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
         self.running_audits = []
         self.running_repairs = []
@@ -50,7 +50,6 @@ class Engine(object):
         self.start_scheduler()
 
     def start_scheduler(self):
-        LOG.debug("Crap")
         # Start watchdog thread, which will detect any new audit/react scripts
         # TODO(praneshp): Look into how to do this with threadpoolexecutor?
         watchdog_thread = self.start_watchdog(self.cfg_dir)  # noqa
@@ -80,6 +79,7 @@ class Engine(object):
     def start_watchdog(self, dir_to_watch):
         event_fn = {self.audit_cfg: self.audit_modified,
                     self.repair_cfg: self.repair_modified}
+        LOG.info(event_fn)
         return utils.watch_dir_for_change(dir_to_watch, event_fn)
 
     def start_scripts(self, script_type):

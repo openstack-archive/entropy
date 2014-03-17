@@ -16,7 +16,6 @@
 # under the License.
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
 import sys
@@ -27,36 +26,38 @@ sys.path.insert(0, os.path.join(os.path.abspath(os.pardir)))
 sys.path.insert(0, os.path.abspath(os.getcwd()))
 
 from engine import Engine
-from entropy import globals
 from entropy import utils
 
 LOG = logging.getLogger(__name__)
-running_audits = []
-running_repairs = []
-executor = ThreadPoolExecutor(max_workers=globals.MAX_WORKERS)
-all_futures = []
 entropy_engine = None
 
+# TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
+engine_cfg = os.path.join(os.getcwd(), 'entropy', 'cfg', 'engines.cfg')
+log_file = os.path.join(os.getcwd(), 'entropy', 'logs', 'entropy.log')
 
-# TODO(praneshp): for next 3 fns, read the right file from engine name and
-# type, then modify that file.
-def add_to_list(script_type, **kwargs):
-    if script_type == 'audit':
-        cfg_file = globals.AUDIT_CFG
-    else:
-        cfg_file = globals.REPAIR_CFG
+
+def get_cfg_file(engine, script_type):
+    cfg_key = {'audit': 'audit_cfg', 'repair': 'repair_cfg'}
+    engines = utils.load_yaml(engine_cfg)
+    for engine_value in engines:
+        if engine_value.keys()[0] == engine:
+            return engine_value[engine_value.keys()[0]][cfg_key[script_type]]
+    return None
+
+
+def add_to_list(engine, script_type, **kwargs):
+    cfg_file = get_cfg_file(engine, script_type)
+    if cfg_file is None:
+        LOG.error('Engine not found')
+        return
+    if utils.check_duplicate(kwargs['name'], cfg_file):
+        LOG.error('%s already exists, not registering', script_type)
+        return
     with open(cfg_file, "a") as cfg:
         cfg.write(yaml.dump(kwargs, canonical=False,
                             default_flow_style=False,
                             explicit_start=True))
-
-
-def repair_present(name):
-    return utils.check_duplicate(name, globals.REPAIR_CFG)
-
-
-def audit_present(name):
-    return utils.check_duplicate(name, globals.AUDIT_CFG)
+        return True
 
 
 def register_audit(args):
@@ -68,16 +69,11 @@ def register_audit(args):
         LOG.error('Need path to script and json')
         return
 
-    #Check if this one is already present
-    if audit_present(args.name):
-        LOG.error('Audit already exists, not registering')
-        return
-
     #Write to audit file
     audit_cfg_args = {'name': args.name,
                       'conf': os.path.join(os.getcwd(), args.conf)}
-    add_to_list('audit', **audit_cfg_args)
-    LOG.info('Registered audit %s', args.name)
+    if add_to_list(args.engine, 'audit', **audit_cfg_args):
+        LOG.info('Registered audit %s', args.name)
 
 
 def register_repair(args):
@@ -89,16 +85,11 @@ def register_repair(args):
         LOG.error('Need path to script and json')
         return
 
-    #Check if this one is already present
-    if repair_present(args.name):
-        LOG.error('Repair script already exists, not registering')
-        return
-
     #Write to audit file
     repair_cfg_args = {'name': args.name,
                        'conf': os.path.join(os.getcwd(), args.conf)}
-    add_to_list('repair', **repair_cfg_args)
-    LOG.info('Registered repair script %s', args.name)
+    if add_to_list(args.engine, 'repair', **repair_cfg_args):
+        LOG.info('Registered repair script %s', args.name)
 
 
 def start_engine(args):
@@ -106,18 +97,17 @@ def start_engine(args):
     if not (args.name and args.audit_cfg and args.repair_cfg):
         LOG.error('Need name, audit_cfg, and repair_cfg')
         return
-    engine_cfg = os.path.join(os.getcwd(), 'entropy', 'cfg', 'test.cfg')
-    args.log_file = os.path.join(os.getcwd(), args.log_file)
-    args.audit_cfg = os.path.join(os.getcwd(), args.audit_cfg)
-    args.repair_cfg = os.path.join(os.getcwd(), args.repair_cfg)
-    cfg = {'audit': args.audit_cfg, 'repair': args.repair_cfg}
+    cfg_data = {'log_file': os.path.join(os.getcwd(), args.log_file),
+                'audit_cfg': os.path.join(os.getcwd(), args.audit_cfg),
+                'repair_cfg': os.path.join(os.getcwd(), args.repair_cfg)}
+    cfg = {args.name: cfg_data}
     with open(engine_cfg, "w") as cfg_file:
         cfg_file.write(yaml.dump(cfg, canonical=False,
                                  default_flow_style=False,
                                  explicit_start=True))
     LOG.info('Wrote to engine cfg')
     global entropy_engine
-    entropy_engine = Engine(args)
+    entropy_engine = Engine(args.name, **cfg_data)
 
 
 def parse():
@@ -167,6 +157,6 @@ def parse():
 if __name__ == '__main__':
     #TODO(praneshp): AMQP, json->yaml, reaction scripts(after amqp)
 
-    logging.basicConfig(filename=globals.log_file,
+    logging.basicConfig(filename=log_file,
                         level=logging.DEBUG)
     parse()
