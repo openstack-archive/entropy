@@ -59,15 +59,8 @@ class Engine(object):
         self.futures.append(self.start_scripts('audit'))
         watchdog_thread.join()
 
-    def register_audit(self):
-        pass
-
-    def register_repair(self):
-        pass
-
     # TODO(praneshp): For now, only addition of scripts. Take care of
     # deletion later
-
     def audit_modified(self):
         LOG.warning('Audit configuration changed')
         self.futures.append(self.start_scripts('audit'))
