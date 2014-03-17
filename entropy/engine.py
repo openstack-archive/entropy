@@ -174,4 +174,4 @@ class Engine(object):
             try:
                 audit_obj.send_message(**kwargs)
             except Exception as e:
-                LOG.error(e)
+                LOG.error('%s', e)

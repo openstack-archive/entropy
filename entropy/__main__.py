@@ -155,7 +155,8 @@ def parse():
 
 if __name__ == '__main__':
     #TODO(praneshp): AMQP, json->yaml, reaction scripts(after amqp)
-
+    FORMAT = '%(filename)s %(lineno)s %(message)s'
     logging.basicConfig(filename=log_file,
-                        level=logging.DEBUG)
+                        level=logging.DEBUG,
+                        format=FORMAT)
     parse()
