@@ -46,7 +46,10 @@ class Engine(object):
         self.running_audits = []
         self.running_repairs = []
         self.futures = []
-        LOG.info('Creating engine obj')
+        LOG.info('Created engine obj %s', self.name)
+
+    def run(self):
+        LOG.info('Starting Scheduler for %s', self.name)
         self.start_scheduler()
 
     def start_scheduler(self):
