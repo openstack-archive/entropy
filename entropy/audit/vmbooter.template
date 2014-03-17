@@ -1,0 +1,20 @@
+{
+    "name" : "vmbooter",
+    "hostname" : "localhost",
+    "schedule" :"*/1 * * * *",
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "",
+    "mq_password": "",
+    "module": "vmbooter",
+    "jump_host": "",
+    "jump_user": "",
+    "api_host": "",
+    "nova_username": "",
+    "nova_password": "",
+    "nova_tenant": "",
+    "nova_version": "",
+    "vm_id": "",
+    "flavor": "",
+    "image": "-2_1"
+}
