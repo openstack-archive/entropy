@@ -29,7 +29,6 @@ from engine import Engine
 from entropy import utils
 
 LOG = logging.getLogger(__name__)
-entropy_engine = None
 
 # TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
 engine_cfg = os.path.join(os.getcwd(), 'entropy', 'cfg', 'engines.cfg')
@@ -106,8 +105,7 @@ def start_engine(args):
                                  default_flow_style=False,
                                  explicit_start=True))
     LOG.info('Wrote to engine cfg')
-    global entropy_engine
-    entropy_engine = Engine(args.name, **cfg_data)
+    entropy_engine = Engine(args.name, **cfg_data)  # noqa
 
 
 def parse():
