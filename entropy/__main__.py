@@ -105,7 +105,8 @@ def start_engine(args):
                                  default_flow_style=False,
                                  explicit_start=True))
     LOG.info('Wrote to engine cfg')
-    entropy_engine = Engine(args.name, **cfg_data)  # noqa
+    entropy_engine = Engine(args.name, **cfg_data)
+    entropy_engine.run()
 
 
 def parse():
