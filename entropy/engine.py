@@ -65,11 +65,11 @@ class Engine(object):
     # TODO(praneshp): For now, only addition of scripts. Take care of
     # deletion later
     def audit_modified(self):
-        LOG.warning('Audit configuration changed')
+        LOG.info('Audit configuration changed')
         self.futures.append(self.start_scripts('audit'))
 
     def repair_modified(self):
-        LOG.warning('Repair configuration changed')
+        LOG.info('Repair configuration changed')
         self.futures.append(self.start_scripts('repair'))
 
     def start_watchdog(self, dir_to_watch):
@@ -97,12 +97,12 @@ class Engine(object):
         for script in scripts:
             if script['name'] not in running_scripts:
                 futures.append(setup_func(script))
-        LOG.warning('Running %s scripts %s', script_type,
-                    ', '.join(running_scripts))
+        LOG.info('Running %s scripts %s', script_type,
+                 ', '.join(running_scripts))
         return futures
 
     def setup_react(self, script):
-        LOG.warning('Setting up reactor %s', script['name'])
+        LOG.info('Setting up reactor %s', script['name'])
 
         # Pick out relevant info
         data = dict(utils.load_yaml(script['conf']).next())
@@ -124,7 +124,7 @@ class Engine(object):
             return future
 
     def setup_audit(self, script):
-        LOG.warning('Setting up audit script %s', script['name'])
+        LOG.info('Setting up audit script %s', script['name'])
 
         # Now pick out relevant info
         data = dict(utils.load_yaml(script['conf']).next())
@@ -153,7 +153,7 @@ class Engine(object):
         cron = croniter.croniter(schedule, now)
         next_iteration = cron.get_next(datetime.datetime)
         while True:
-            LOG.warning('Next call at %s', next_iteration)
+            LOG.info('Next call at %s', next_iteration)
             pause.until(next_iteration)
             Engine.run_audit(**kwargs)
             next_iteration = cron.get_next(datetime.datetime)
@@ -173,5 +173,5 @@ class Engine(object):
             audit_obj = imported_module.Audit()
             try:
                 audit_obj.send_message(**kwargs)
-            except Exception as e:
-                LOG.error('%s', e)
+            except Exception:
+                LOG.exception('Could not run audit %s', kwargs['name'])

@@ -64,7 +64,7 @@ def parse_conf():
 
 def main(**kwargs):
     logging.basicConfig(filename=os.path.join(LOG_REPO, 'react.log'))
-    LOG.warning('starting react script %s' % kwargs['name'])
+    LOG.info('starting react script %s', kwargs['name'])
     mq_args = parse_conf()
     recv_message(**mq_args)
 

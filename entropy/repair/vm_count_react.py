@@ -26,13 +26,13 @@ LOG_REPO = os.path.join(os.getcwd(), 'entropy', 'logs')
 
 
 def get_vm_count(body, **kwargs):
-    LOG.warning("Received message: %r" % body)
+    LOG.info("Received message: %r" % body)
     try:
         payload = body['payload']
         for host, count in payload['vm_count'].items():
             if count > kwargs['limit']:
-                LOG.error("Host %s has %s vms, more than %s",
-                          host, count, kwargs['limit'])
+                LOG.info("Host %s has %s vms, more than %s",
+                         host, count, kwargs['limit'])
             elif count == -1:
                 LOG.error("Libvirt errored out when connecting to %s", host)
 
@@ -80,7 +80,7 @@ def parse_conf(conf):
 
 
 def main(**kwargs):
-    LOG.warning('starting react script %s' % kwargs['name'])
+    LOG.info('starting react script %s' % kwargs['name'])
     args = parse_conf(kwargs['conf'])
     recv_message(**args)
 
