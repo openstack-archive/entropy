@@ -48,7 +48,7 @@ def get_cfg_file(engine, script_type):
 def add_to_list(engine, script_type, **kwargs):
     cfg_file = get_cfg_file(engine, script_type)
     if cfg_file is None:
-        LOG.error('Engine not found')
+        LOG.error('Could not find cfg file')
         return
     if utils.check_duplicate(kwargs['name'], cfg_file):
         LOG.error('%s already exists, not registering', script_type)
@@ -62,11 +62,11 @@ def add_to_list(engine, script_type, **kwargs):
 
 def register_audit(args):
     #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
-    LOG.warning('Registering audit script %s', args.name)
+    LOG.info('Registering audit script %s', args.name)
 
     #First check if you have all inputs
     if not (args.conf and args.name and args.engine):
-        LOG.error('Need path to script and json')
+        LOG.error('Need path to script, json and engine name')
         return
 
     #Write to audit file
@@ -78,11 +78,11 @@ def register_audit(args):
 
 def register_repair(args):
     #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
-    LOG.warning('Registering repair script %s', args.name)
+    LOG.info('Registering repair script %s', args.name)
 
      #First check if you have all inputs
     if not (args.conf and args.name and args.engine):
-        LOG.error('Need path to script and json')
+        LOG.error('Need path to script, json and engine name')
         return
 
     #Write to audit file
@@ -105,7 +105,7 @@ def start_engine(args):
         cfg_file.write(yaml.dump(cfg, canonical=False,
                                  default_flow_style=False,
                                  explicit_start=True))
-    LOG.info('Wrote to engine cfg')
+    LOG.info('Added %s to engine cfg', args.name)
     global entropy_engine
     entropy_engine = Engine(args.name, **cfg_data)
 

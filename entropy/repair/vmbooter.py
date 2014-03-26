@@ -84,6 +84,6 @@ def parse_conf(conf):
 
 
 def main(**kwargs):
-    LOG.warning('starting react script %s' % kwargs['name'])
+    LOG.info('starting react script %s' % kwargs['name'])
     args = parse_conf(kwargs['conf'])
     recv_message(**args)
