@@ -48,14 +48,14 @@ class Audit(base.AuditBase):
                 'stderr': stderr.readlines()}
 
     @staticmethod
-    def boot_vm_with_novaclient(**kwargs):
+    def flavor_list_with_novacleint(**kwargs):
         auth_url = 'http://{0}:5000/v2.0'.format(kwargs['api_host'])
-        LOG.error('auth url is %s', auth_url)
+        LOG.info('auth url is %s', auth_url)
         nc = Client(kwargs['nova_version'], kwargs['nova_username'],
                     kwargs['nova_password'], kwargs['nova_tenant'],
                     auth_url)
         flavors = nc.flavors.list()
-        LOG.error('List of flavors: %s', flavors)
+        LOG.info('List of flavors: %s', flavors)
 
     @staticmethod
     def delete_with_cli(**kwargs):
