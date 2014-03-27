@@ -35,7 +35,7 @@ class Audit(base.AuditBase):
         connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
                                       '%(mq_host)s:%(mq_port)s//' % kwargs)
         message = {'From': __file__,
-                   'Date': str(datetime.datetime.now())}
+                   'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
             maybe_declare(entropy_exchange, producer.channel)
             producer.publish(message,
