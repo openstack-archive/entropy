@@ -49,7 +49,7 @@ class Audit(base.AuditBase):
                                       '%(mq_host)s:%(mq_port)s//'
                                       % kwargs['mq_args'])
         message = {'From': __name__,
-                   'Date': str(datetime.datetime.now())}
+                   'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
             maybe_declare(entropy_exchange, producer.channel)
             msg_args = {'vm_count': self.get_vm_count(**kwargs)}
