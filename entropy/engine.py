@@ -126,40 +126,39 @@ class Engine(object):
     def setup_audit(self, script):
         LOG.info('Setting up audit script %s', script['name'])
 
-        # Now pick out relevant info
-        data = dict(utils.load_yaml(script['conf']).next())
-        # stuff for the message queue
-        mq_args = {'mq_host': data['mq_host'],
-                   'mq_port': data['mq_port'],
-                   'mq_user': data['mq_user'],
-                   'mq_password': data['mq_password']}
-
-        # general stuff for the audit module
-        # TODO(praneshp): later, fix to send only one copy of mq_args
-        kwargs = data
-        kwargs['mq_args'] = mq_args
-
         # add this job to list of running audits
         self.running_audits.append(script['name'])
 
         # start a process for this audit script
-        future = self.executor.submit(self.start_audit, **kwargs)
+        future = self.executor.submit(Engine.start_audit, script)
         return future
 
-    def start_audit(self, **kwargs):
-        LOG.info("Starting audit for %s", kwargs['name'])
+    @staticmethod
+    def start_audit(script):
+        LOG.info("Starting audit for %s", script['name'])
+        data = dict(utils.load_yaml(script['conf']).next())
+        schedule = data['schedule']
         now = datetime.datetime.now()
-        schedule = kwargs['schedule']
         cron = croniter.croniter(schedule, now)
         next_iteration = cron.get_next(datetime.datetime)
         while True:
             LOG.info('Next call at %s', next_iteration)
             pause.until(next_iteration)
-            Engine.run_audit(**kwargs)
+            Engine.run_audit(script)
             next_iteration = cron.get_next(datetime.datetime)
 
     @staticmethod
-    def run_audit(**kwargs):
+    def run_audit(script):
+        # Read the conf file
+        data = dict(utils.load_yaml(script['conf']).next())
+        # general stuff for the audit module
+        # TODO(praneshp): later, fix to send only one copy of mq_args
+        mq_args = {'mq_host': data['mq_host'],
+                   'mq_port': data['mq_port'],
+                   'mq_user': data['mq_user'],
+                   'mq_password': data['mq_password']}
+        kwargs = data
+        kwargs['mq_args'] = mq_args
         # Put a message on the mq
         #TODO(praneshp): this should be the path with register-audit
         #TODO(praneshp): The whole logic in this function should be in
