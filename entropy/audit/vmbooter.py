@@ -20,16 +20,24 @@ import time
 from kombu import BrokerConnection
 from kombu.common import maybe_declare
 from kombu.pools import producers
+from kombu import Queue
 from novaclient.client import Client
 import paramiko
 
 import base
-from entropy.queues import entropy_exchange
 
 LOG = logging.getLogger(__name__)
 
 
 class Audit(base.AuditBase):
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.exchange = kwargs['exchange']
+        self.routing_key = kwargs['routing_key']
+        self.message_queue = Queue(self.name,
+                                   self.exchange,
+                                   self.routing_key)
+
     # TODO(praneshp): this can be done with plumbum instead.
     @staticmethod
     def remote_call(cmd, **kwargs):
@@ -127,9 +135,9 @@ class Audit(base.AuditBase):
         message = {'From': __name__,
                    'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
-            maybe_declare(entropy_exchange, producer.channel)
+            maybe_declare(kwargs['exchange'], producer.channel)
             message['payload'] = self.boot_vm_with_cli(**kwargs)
             producer.publish(message,
-                             exchange=entropy_exchange,
-                             routing_key='vmboot',
+                             exchange=self.exchange,
+                             routing_key=self.routing_key,
                              serializer='json')
