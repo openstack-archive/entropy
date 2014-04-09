@@ -1,6 +1,7 @@
 {
     "name" : "vmbooter",
     "hostname" : "localhost",
+    "routing_key": "vmboot",
     "schedule" :"*/1 * * * *",
     "mq_host": "localhost",
     "mq_port": "5672",
