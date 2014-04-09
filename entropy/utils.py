@@ -51,6 +51,7 @@ def import_module(module_name):
     return sys.modules[module_name]
 
 
+# TODO(praneshp): return exception isntead
 def find_module(base_name, search_paths, required_attrs=None):
     found_places = []
     if not required_attrs:

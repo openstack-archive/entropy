@@ -14,16 +14,22 @@
 import abc
 import logging
 
+from kombu import Queue
+
 
 LOG = logging.getLogger(__name__)
 
 
 class AuditBase(object):
     __metaclass__ = abc.ABCMeta
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.exchange = kwargs['exchange']
+        self.routing_key = kwargs['routing_key']
+        self.message_queue = Queue(self.name,
+                                   self.exchange,
+                                   self.routing_key)
 
     @abc.abstractmethod
     def send_message(self, **kwargs):
-        pass
-
-    def test(self):
         pass
