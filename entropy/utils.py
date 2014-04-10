@@ -25,6 +25,10 @@ import yaml
 LOG = logging.getLogger(__name__)
 
 
+def get_filename_and_path(path):
+    return os.path.dirname(path), os.path.basename(path)
+
+
 def get_key_path():
     home_dir = os.path.expanduser("~")
     ssh_dir = os.path.join(home_dir, ".ssh")

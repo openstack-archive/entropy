@@ -1,0 +1,331 @@
+
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x103618490>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x103618490>>}
+engine.py 103 Running repair scripts 
+engine.py 103 Running audit scripts 
+__main__.py 82 Registering repair script vmbooter
+__main__.py 93 Registered repair script vmbooter
+engine.py 74 Repair configuration changed
+engine.py 107 Setting up reactor vmbooter
+utils.py 69 Looking for modules ['repair.vmbooter'] that have attributes []
+utils.py 76 Failed at attempted import of 'repair.vmbooter' due to: No module named vmbooter
+utils.py 86 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+__main__.py 82 Registering repair script vmbooter
+__main__.py 55 repair already exists, not registering
+utils.py 98 no associated function for /Users/praneshp/code/entropy/entropy/examples/cfg
+__main__.py 82 Registering repair script vmbooter
+__main__.py 93 Registered repair script vmbooter
+engine.py 74 Repair configuration changed
+engine.py 107 Setting up reactor vmbooter
+utils.py 69 Looking for modules ['repair.vmbooter'] that have attributes []
+utils.py 76 Failed at attempted import of 'repair.vmbooter' due to: No module named vmbooter
+utils.py 86 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x101722490>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x101722490>>}
+engine.py 107 Setting up reactor vmbooter
+utils.py 69 Looking for modules ['example/repair.vmbooter'] that have attributes []
+utils.py 76 Failed at attempted import of 'example/repair.vmbooter' due to: Import by filename is not supported.
+utils.py 86 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+engine.py 103 Running audit scripts 
+__main__.py 82 Registering repair script vmbooter
+__main__.py 55 repair already exists, not registering
+utils.py 98 no associated function for /Users/praneshp/code/entropy/entropy/examples/cfg
+__main__.py 82 Registering repair script vmbooter
+__main__.py 93 Registered repair script vmbooter
+engine.py 74 Repair configuration changed
+engine.py 107 Setting up reactor vmbooter
+utils.py 69 Looking for modules ['example/repair.vmbooter'] that have attributes []
+utils.py 76 Failed at attempted import of 'example/repair.vmbooter' due to: Import by filename is not supported.
+utils.py 86 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10c683490>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10c683490>>}
+engine.py 107 Setting up reactor vmbooter
+utils.py 70 Looking for modules ['example/repair.vmbooter'] that have attributes []
+utils.py 77 Failed at attempted import of 'example/repair.vmbooter' due to: Import by filename is not supported.
+utils.py 87 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+engine.py 103 Running audit scripts 
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x102423410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x102423410>>}
+engine.py 107 Setting up reactor vmbooter
+utils.py 70 Looking for modules ['examples.repair.vmbooter'] that have attributes []
+utils.py 77 Failed at attempted import of 'examples.repair.vmbooter' due to: No module named examples.repair.vmbooter
+utils.py 87 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+engine.py 103 Running audit scripts 
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x108f0c410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x108f0c410>>}
+engine.py 107 Setting up reactor vmbooter
+utils.py 70 Looking for modules ['examples/repair.vmbooter'] that have attributes []
+utils.py 77 Failed at attempted import of 'examples/repair.vmbooter' due to: Import by filename is not supported.
+utils.py 87 Found vmbooter with attributes [] in []
+engine.py 114 Found these modules: []
+engine.py 116 No module to load
+engine.py 103 Running repair scripts 
+engine.py 103 Running audit scripts 
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x101603410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x101603410>>}
+engine.py 107 Setting up reactor vmbooter
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10f1f3410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10f1f3410>>}
+engine.py 107 Setting up reactor vmbooter
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x109099410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x109099410>>}
+engine.py 107 Setting up reactor vmbooter
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x103e11410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x103e11410>>}
+engine.py 107 Setting up reactor vmbooter
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x105984450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x105984450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 116 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x10597b1e0>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10d3a7450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10d3a7450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 117 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x10d39e1e0>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x109a27450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x109a27450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 117 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x109a1e1e0>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x100e0d450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x100e0d450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 115 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x100e041e0>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10eb06450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10eb06450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 115 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x10eb01150>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x101996450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x101996450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 115 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x101991150>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10a1d9450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10a1d9450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 115 Found these modules: (<open file 'entropy/examples/audit/vmbooter.py', mode 'U' at 0x10a1d4150>, 'entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10fe4d450>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10fe4d450>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 115 Found these modules: (<open file 'entropy/examples/repair/vmbooter.py', mode 'U' at 0x10fe48150>, 'entropy/examples/repair/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 87 starting react script vmbooter
+engine.py 103 Running repair scripts vmbooter
+engine.py 103 Running audit scripts 
+mixins.py 224 Connected to amqp://guest@localhost:5672//
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10da04410>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10da04410>>}
+engine.py 107 Setting up reactor vmbooter
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x109343910>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x109343910>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 114 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', mode 'U' at 0x109327270>, '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 87 starting react script vmbooter
+engine.py 103 Running repair scripts vmbooter
+engine.py 103 Running audit scripts 
+mixins.py 224 Connected to amqp://guest@localhost:5672//
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10a4cb910>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10a4cb910>>}
+engine.py 107 Setting up reactor vmbooter
+engine.py 114 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', mode 'U' at 0x10a4af270>, '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 87 starting react script vmbooter
+engine.py 103 Running repair scripts vmbooter
+engine.py 103 Running audit scripts 
+mixins.py 224 Connected to amqp://guest@localhost:5672//
+__main__.py 82 Registering repair script vmbooter
+__main__.py 55 repair already exists, not registering
+__main__.py 66 Registering audit script vmbooter
+__main__.py 77 Registered audit vmbooter
+engine.py 70 Audit configuration changed
+engine.py 130 Setting up audit script vmbooter
+engine.py 140 Starting audit for vmbooter
+engine.py 103 Running audit scripts vmbooter
+engine.py 147 Next call at 2014-04-09 22:41:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 168 Found these modules: []
+engine.py 173 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 169, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 147 Next call at 2014-04-09 22:42:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 168 Found these modules: []
+engine.py 173 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 169, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 147 Next call at 2014-04-09 22:43:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 168 Found these modules: []
+engine.py 173 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 169, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 147 Next call at 2014-04-09 22:44:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 168 Found these modules: []
+engine.py 173 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 169, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 147 Next call at 2014-04-09 22:45:00
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x11027b910>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x11027b910>>}
+engine.py 109 Setting up reactor vmbooter
+engine.py 116 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', mode 'U' at 0x11025e270>, '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 87 starting react script vmbooter
+engine.py 105 Running repair scripts vmbooter
+engine.py 132 Setting up audit script vmbooter
+engine.py 142 Starting audit for vmbooter
+engine.py 105 Running audit scripts vmbooter
+mixins.py 224 Connected to amqp://guest@localhost:5672//
+engine.py 149 Next call at 2014-04-09 22:45:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 170 Found these modules: []
+engine.py 175 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 171, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 149 Next call at 2014-04-09 22:46:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 170 Found these modules: []
+engine.py 175 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 171, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 149 Next call at 2014-04-09 22:47:00
+utils.py 76 Looking for modules ['audit.vmbooter'] that have attributes []
+utils.py 83 Failed at attempted import of 'audit.vmbooter' due to: No module named vmbooter
+utils.py 93 Found vmbooter with attributes [] in []
+engine.py 170 Found these modules: []
+engine.py 175 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 171, in run_audit
+    imported_module = utils.import_module(available_modules[0])
+IndexError: list index out of range
+engine.py 149 Next call at 2014-04-09 22:48:00
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x10f3d2910>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x10f3d2910>>}
+engine.py 109 Setting up reactor vmbooter
+engine.py 116 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', mode 'U' at 0x10f3b7300>, '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 87 starting react script vmbooter
+engine.py 105 Running repair scripts vmbooter
+engine.py 130 Setting up audit script vmbooter
+engine.py 138 Starting audit for vmbooter
+engine.py 105 Running audit scripts vmbooter
+mixins.py 224 Connected to amqp://guest@localhost:5672//
+engine.py 145 Next call at 2014-04-09 22:55:00
+engine.py 168 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/audit/vmbooter.py', mode 'U' at 0x10f3b7ed0>, '/Users/praneshp/code/entropy/entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+engine.py 173 Could not run audit vmbooter
+Traceback (most recent call last):
+  File "entropy/engine.py", line 169, in run_audit
+    imported_module = imp.load_module(audit_script, **available_modules)
+TypeError: load_module() argument after ** must be a mapping, not tuple
+engine.py 145 Next call at 2014-04-09 22:56:00
+__main__.py 109 Added test to engine cfg
+engine.py 51 Created engine obj test
+engine.py 54 Starting Scheduler for test
+engine.py 80 {'/Users/praneshp/code/entropy/entropy/examples/cfg/audit.cfg': <bound method Engine.audit_modified of <engine.Engine object at 0x105700910>>, '/Users/praneshp/code/entropy/entropy/examples/cfg/repair.cfg': <bound method Engine.repair_modified of <engine.Engine object at 0x105700910>>}
+engine.py 109 Setting up reactor vmbooter
+engine.py 116 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', mode 'U' at 0x1056e5300>, '/Users/praneshp/code/entropy/entropy/examples/repair/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 87 starting react script vmbooter
+engine.py 105 Running repair scripts vmbooter
+engine.py 130 Setting up audit script vmbooter
+engine.py 138 Starting audit for vmbooter
+engine.py 105 Running audit scripts vmbooter
+engine.py 145 Next call at 2014-04-09 22:56:00
+mixins.py 224 Connected to amqp://guest@localhost:5672//
+engine.py 168 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/audit/vmbooter.py', mode 'U' at 0x1056e5300>, '/Users/praneshp/code/entropy/entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 37 running nova --os-username praneshp --os-password Pran@1991  --os-tenant-name admin  --os-auth-url http://cloudtest025.ops.stg.test.sp2.yahoo.com:5000/v2.0  list remotely on cloudtest025.ops.stg.test.sp2.yahoo.com
+vmbooter.py 76 Deleting ['entropy-1397033943']
+vmbooter.py 37 running nova --os-username praneshp --os-password Pran@1991  --os-tenant-name admin  --os-auth-url http://cloudtest025.ops.stg.test.sp2.yahoo.com:5000/v2.0  delete entropy-1397033943 remotely on cloudtest025.ops.stg.test.sp2.yahoo.com
+vmbooter.py 37 running nova --os-username praneshp --os-password Pran@1991  --os-tenant-name admin  --os-auth-url http://cloudtest025.ops.stg.test.sp2.yahoo.com:5000/v2.0 boot --flavor micro --image openstack_image_rhel_6_4-1_1-rhel entropy-1397109364 remotely on cloudtest025.ops.stg.test.sp2.yahoo.com
+engine.py 145 Next call at 2014-04-09 22:57:00
+vmbooter.py 31 Got [u'delete_vms', u'boot']
+vmbooter.py 36 delete_vms successful, stdout is []
+vmbooter.py 36 boot successful, stdout is [u'+--------------------------------------+--------------------------------------+\n', u'| Property                             | Value                                |\n', u'+--------------------------------------+--------------------------------------+\n', u'| OS-EXT-STS:task_state                | scheduling                           |\n', u'| image                                | openstack_image_rhel_6_4-1_1-rhel    |\n', u'| OS-EXT-STS:vm_state                  | building                             |\n', u'| OS-EXT-SRV-ATTR:instance_name        | instance-000000db                    |\n', u'| OS-SRV-USG:launched_at               | None                                 |\n', u'| flavor                               | micro                                |\n', u'| id                                   | 9dac4e78-de95-4a45-b076-2baefaca77ea |\n', u"| security_groups                      | [{u'name': u'default'}]              |\n", u'| user_id                              | d7b269abad1a4bb4902b223a7e5e1c21     |\n', u'| hostname                             |                                      |\n', u'| OS-DCF:diskConfig                    | MANUAL                               |\n', u'| accessIPv4                           |                                      |\n', u'| accessIPv6                           |                                      |\n', u'| progress                             | 0                                    |\n', u'| OS-EXT-STS:power_state               | 0                                    |\n', u'| OS-EXT-AZ:availability_zone          | nova                                 |\n', u'| config_drive                         |                                      |\n', u'| status                               | BUILD                                |\n', u'| updated                              | 2014-04-10T05:56:07Z                 |\n', u'| hostId                               |                                      |\n', u'| OS-EXT-SRV-ATTR:host                 | None                                 |\n', u'| OS-SRV-USG:terminated_at             | None                                 |\n', u'| key_name                             | None                                 |\n', u'| OS-EXT-SRV-ATTR:hypervisor_hostname  | None                                 |\n', u'| name                                 | entropy-1397109364                   |\n', u'| adminPass                            | iG23gUWzQBin                         |\n', u'| tenant_id                            | 6e39111801b642cc93b48e75a63da41d     |\n', u'| created                              | 2014-04-10T05:56:06Z                 |\n', u'| os-extended-volumes:volumes_attached | []                                   |\n', u'| metadata                             | {}                                   |\n', u'+--------------------------------------+--------------------------------------+\n']
+engine.py 168 Found these modules: (<open file '/Users/praneshp/code/entropy/entropy/examples/audit/vmbooter.py', mode 'U' at 0x1056e5300>, '/Users/praneshp/code/entropy/entropy/examples/audit/vmbooter.py', ('.py', 'U', 1))
+vmbooter.py 37 running nova --os-username praneshp --os-password Pran@1991  --os-tenant-name admin  --os-auth-url http://cloudtest025.ops.stg.test.sp2.yahoo.com:5000/v2.0  list remotely on cloudtest025.ops.stg.test.sp2.yahoo.com
+vmbooter.py 76 Deleting ['entropy-1397109364']
+vmbooter.py 37 running nova --os-username praneshp --os-password Pran@1991  --os-tenant-name admin  --os-auth-url http://cloudtest025.ops.stg.test.sp2.yahoo.com:5000/v2.0  delete entropy-1397109364 remotely on cloudtest025.ops.stg.test.sp2.yahoo.com
+vmbooter.py 37 running nova --os-username praneshp --os-password Pran@1991  --os-tenant-name admin  --os-auth-url http://cloudtest025.ops.stg.test.sp2.yahoo.com:5000/v2.0 boot --flavor micro --image openstack_image_rhel_6_4-1_1-rhel entropy-1397109423 remotely on cloudtest025.ops.stg.test.sp2.yahoo.com
+engine.py 145 Next call at 2014-04-09 22:58:00
+vmbooter.py 31 Got [u'delete_vms', u'boot']
+vmbooter.py 36 delete_vms successful, stdout is []
+vmbooter.py 36 boot successful, stdout is [u'+--------------------------------------+--------------------------------------+\n', u'| Property                             | Value                                |\n', u'+--------------------------------------+--------------------------------------+\n', u'| OS-EXT-STS:task_state                | scheduling                           |\n', u'| image                                | openstack_image_rhel_6_4-1_1-rhel    |\n', u'| OS-EXT-STS:vm_state                  | building                             |\n', u'| OS-EXT-SRV-ATTR:instance_name        | instance-000000dc                    |\n', u'| OS-SRV-USG:launched_at               | None                                 |\n', u'| flavor                               | micro                                |\n', u'| id                                   | 29efba65-eb83-434a-af82-743027dac285 |\n', u"| security_groups                      | [{u'name': u'default'}]              |\n", u'| user_id                              | d7b269abad1a4bb4902b223a7e5e1c21     |\n', u'| hostname                             |                                      |\n', u'| OS-DCF:diskConfig                    | MANUAL                               |\n', u'| accessIPv4                           |                                      |\n', u'| accessIPv6                           |                                      |\n', u'| progress                             | 0                                    |\n', u'| OS-EXT-STS:power_state               | 0                                    |\n', u'| OS-EXT-AZ:availability_zone          | nova                                 |\n', u'| config_drive                         |                                      |\n', u'| status                               | BUILD                                |\n', u'| updated                              | 2014-04-10T05:57:06Z                 |\n', u'| hostId                               |                                      |\n', u'| OS-EXT-SRV-ATTR:host                 | None                                 |\n', u'| OS-SRV-USG:terminated_at             | None                                 |\n', u'| key_name                             | None                                 |\n', u'| OS-EXT-SRV-ATTR:hypervisor_hostname  | None                                 |\n', u'| name                                 | entropy-1397109423                   |\n', u'| adminPass                            | 2VQxLdGs7DTx                         |\n', u'| tenant_id                            | 6e39111801b642cc93b48e75a63da41d     |\n', u'| created                              | 2014-04-10T05:57:06Z                 |\n', u'| os-extended-volumes:volumes_attached | []                                   |\n', u'| metadata                             | {}                                   |\n', u'+--------------------------------------+--------------------------------------+\n']

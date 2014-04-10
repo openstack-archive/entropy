@@ -25,7 +25,7 @@ from kombu import Exchange
 import pause
 
 from entropy import utils
-
+import imp
 LOG = logging.getLogger(__name__)
 
 
@@ -98,7 +98,9 @@ class Engine(object):
 
         for script in scripts:
             if script['name'] not in running_scripts:
-                futures.append(setup_func(script))
+                future = setup_func(script)
+                if future is not None:
+                    futures.append(future)
         LOG.info('Running %s scripts %s', script_type,
                  ', '.join(running_scripts))
         return futures
@@ -109,28 +111,25 @@ class Engine(object):
         # Pick out relevant info
         data = dict(utils.load_yaml(script['conf']).next())
         react_script = data['script']
-
-        available_modules = utils.find_module(react_script, ['repair'])
+        search_path, reactor = utils.get_filename_and_path(react_script)
+        available_modules = imp.find_module(reactor, [search_path])
         LOG.info('Found these modules: %s', available_modules)
-        if not available_modules:
-            LOG.error('No module to load')
-        else:
-            imported_module = utils.import_module(available_modules[0])
+        try:
+            imported_module = imp.load_module(react_script, *available_modules)
             kwargs = data
             kwargs['conf'] = script['conf']
-
             # add this job to list of running audits
             self.running_repairs.append(script['name'])
-
             future = self.executor.submit(imported_module.main, **kwargs)
             return future
+        except Exception:
+            LOG.exception("Could not setup %s", kwargs['name'])
+            return None
 
     def setup_audit(self, script):
         LOG.info('Setting up audit script %s', script['name'])
-
         # add this job to list of running audits
         self.running_audits.append(script['name'])
-
         # start a process for this audit script
         future = self.executor.submit(self.start_audit, script)
         return future
@@ -163,9 +162,11 @@ class Engine(object):
         # Put a message on the mq
         #TODO(praneshp): this should be the path with register-audit
         try:
-            available_modules = utils.find_module(kwargs['module'], ['audit'])
+            audit_script = kwargs['module']
+            search_path, auditor = utils.get_filename_and_path(audit_script)
+            available_modules = imp.find_module(auditor, [search_path])
             LOG.info('Found these modules: %s', available_modules)
-            imported_module = utils.import_module(available_modules[0])
+            imported_module = imp.load_module(audit_script, *available_modules)
             audit_obj = imported_module.Audit(**kwargs)
             audit_obj.send_message(**kwargs)
         except Exception:

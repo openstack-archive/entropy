@@ -19,26 +19,20 @@ from kombu import BrokerConnection
 from kombu.common import maybe_declare
 from kombu.pools import producers
 
-import base
-from entropy.queues import entropy_exchange
-from entropy.queues import PASS_KEY
+from entropy.audit import base
 
 LOG = logging.getLogger(__name__)
 
 
 class Audit(base.AuditBase):
-
-    def test(self):
-        LOG.info('hello world')
-
     def send_message(self, **kwargs):
         connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
                                       '%(mq_host)s:%(mq_port)s//' % kwargs)
         message = {'From': __file__,
                    'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
-            maybe_declare(entropy_exchange, producer.channel)
+            maybe_declare(kwargs['exchange'], producer.channel)
             producer.publish(message,
-                             exchange=entropy_exchange,
-                             routing_key=PASS_KEY,
+                             exchange=kwargs['exchange'],
+                             routing_key=kwargs['routing_key'],
                              serializer='json')
