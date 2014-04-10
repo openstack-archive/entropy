@@ -15,6 +15,7 @@
 # under the License.
 
 import logging
+import ntpath
 import os
 import sys
 
@@ -23,6 +24,11 @@ from watchdog.observers import Observer
 import yaml
 
 LOG = logging.getLogger(__name__)
+
+
+def get_filename_and_path(path):
+    head, tail = ntpath.split(path)
+    return head, tail or ntpath.basename(head)
 
 
 def get_key_path():
@@ -53,6 +59,7 @@ def import_module(module_name):
 
 # TODO(praneshp): return exception isntead
 def find_module(base_name, search_paths, required_attrs=None):
+    print base_name, search_paths
     found_places = []
     if not required_attrs:
         required_attrs = []

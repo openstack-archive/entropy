@@ -20,8 +20,7 @@ from kombu.common import maybe_declare
 from kombu.pools import producers
 
 
-import base
-from entropy.queues import entropy_exchange
+from entropy.audit import base
 import libvirt
 
 LOG = logging.getLogger(__name__)
@@ -51,10 +50,10 @@ class Audit(base.AuditBase):
         message = {'From': __name__,
                    'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
-            maybe_declare(entropy_exchange, producer.channel)
+            maybe_declare(kwargs['exchange'], producer.channel)
             msg_args = {'vm_count': self.get_vm_count(**kwargs)}
             message['payload'] = msg_args
             producer.publish(message,
-                             exchange=entropy_exchange,
-                             routing_key='vmcount',
+                             exchange=kwargs['exchange'],
+                             routing_key=kwargs['routing_key'],
                              serializer='json')
