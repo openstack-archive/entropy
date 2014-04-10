@@ -31,8 +31,10 @@ from entropy import utils
 LOG = logging.getLogger(__name__)
 
 # TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
-engine_cfg = os.path.join(os.getcwd(), 'entropy', 'cfg', 'engines.cfg')
-log_file = os.path.join(os.getcwd(), 'entropy', 'logs', 'entropy.log')
+engine_cfg = os.path.join(os.getcwd(), 'entropy', 'examples',
+                          'cfg', 'engines.cfg')
+log_file = os.path.join(os.getcwd(), 'entropy', 'examples',
+                        'logs', 'entropy.log')
 
 
 def get_cfg_file(engine, script_type):

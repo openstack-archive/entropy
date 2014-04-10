@@ -23,7 +23,7 @@ from kombu.pools import producers
 from novaclient.client import Client
 import paramiko
 
-import base
+from entropy.audit import base
 
 LOG = logging.getLogger(__name__)
 

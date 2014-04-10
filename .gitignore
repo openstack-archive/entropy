@@ -56,10 +56,11 @@ ChangeLog
 env
 
 # Project-related
+# json files
+*.json
+*.log
 arch/
 docs/_build
 entropy/test
-entropy/logs
-entropy/audit/*.json
-entropy/repair/*.json
-entropy/cfg/*.cfg
+entropy/examples/logs
+entropy/examples/cfg/
