@@ -39,11 +39,9 @@ log_file = os.path.join(os.getcwd(), 'entropy', 'examples',
 
 def get_cfg_file(engine, script_type):
     cfg_key = {'audit': 'audit_cfg', 'repair': 'repair_cfg'}
-    engines = utils.load_yaml(engine_cfg)
-    for engine_value in engines:
-        if engine_value.keys()[0] == engine:
-            return engine_value[engine_value.keys()[0]][cfg_key[script_type]]
-    return None
+    engine_config = dict(utils.load_yaml(engine_cfg).next())[engine]
+    this_engine_cfg = dict(utils.load_yaml(engine_config).next())[engine]
+    return this_engine_cfg[cfg_key[script_type]]
 
 
 def add_to_list(engine, script_type, **kwargs):
@@ -95,17 +93,16 @@ def register_repair(args):
 
 def start_engine(args):
     # TODO(praneshp): for now, always look in entropy/cfg for config files.
-    if not (args.name and args.audit_cfg and args.repair_cfg):
-        LOG.error('Need name, audit_cfg, and repair_cfg')
+    if not (args.name and args.engine_cfg):
+        LOG.error('Need name and engine cfg')
         return
-    cfg_data = {'log_file': os.path.join(os.getcwd(), args.log_file),
-                'audit_cfg': os.path.join(os.getcwd(), args.audit_cfg),
-                'repair_cfg': os.path.join(os.getcwd(), args.repair_cfg)}
-    cfg = {args.name: cfg_data}
+
+    cfg_data = dict(utils.load_yaml(args.engine_cfg).next())[args.name]
+    cfg = {args.name: args.engine_cfg}
     with open(engine_cfg, "w") as cfg_file:
         cfg_file.write(yaml.dump(cfg, canonical=False,
-                                 default_flow_style=False,
-                                 explicit_start=True))
+                       default_flow_style=False,
+                       explicit_start=True))
     LOG.info('Added %s to engine cfg', args.name)
     entropy_engine = Engine(args.name, **cfg_data)
     entropy_engine.run()
@@ -143,12 +140,8 @@ def parse():
     scheduler_parser = subparsers.add_parser('start-engine',
                                              help='Start an entropy engine')
     scheduler_parser.add_argument('-n', dest='name', help='Name')
-    scheduler_parser.add_argument('-a', dest='audit_cfg',
-                                  help='path to audit cfg')
-    scheduler_parser.add_argument('-l', dest='log_file',
-                                  help='log_file')
-    scheduler_parser.add_argument('-r', dest='repair_cfg',
-                                  help='path to repair cfg')
+    scheduler_parser.add_argument('-c', dest='engine_cfg',
+                                  help='path to engine cfg')
     scheduler_parser.set_defaults(func=start_engine)
 
     args = parser.parse_args()
