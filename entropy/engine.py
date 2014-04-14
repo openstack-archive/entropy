@@ -31,6 +31,7 @@ LOG = logging.getLogger(__name__)
 
 class Engine(object):
     def __init__(self, name, **cfg_data):
+        Engine.set_logger(**cfg_data)
         # constants
         # TODO(praneshp): Hardcode for now, could/should be cmdline input
         self.max_workers = 8
@@ -49,6 +50,16 @@ class Engine(object):
         self.running_repairs = []
         self.futures = []
         LOG.info('Created engine obj %s', self.name)
+
+    @staticmethod
+    def set_logger(**cfg_data):
+        # Set the logger
+        LOG.handlers = []
+        log_to_file = logging.FileHandler(cfg_data['log_file'])
+        log_to_file.setLevel(logging.DEBUG)
+        log_format = logging.Formatter(cfg_data['log_format'])
+        log_to_file.setFormatter(log_format)
+        LOG.addHandler(log_to_file)
 
     def run(self):
         LOG.info('Starting Scheduler for %s', self.name)

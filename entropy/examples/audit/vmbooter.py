@@ -23,12 +23,12 @@ from kombu.pools import producers
 from novaclient.client import Client
 import paramiko
 
-from entropy.audit import base
+from entropy.audit.base import AuditBase
 
 LOG = logging.getLogger(__name__)
 
 
-class Audit(base.AuditBase):
+class Audit(AuditBase):
     # TODO(praneshp): this can be done with plumbum instead.
     @staticmethod
     def remote_call(cmd, **kwargs):
@@ -120,6 +120,12 @@ class Audit(base.AuditBase):
                 'boot': Audit.remote_call(boot_command, **kwargs)}
 
     def send_message(self, **kwargs):
+        LOG.handlers = []
+        log_to_file = logging.FileHandler(kwargs['log_file'])
+        log_to_file.setLevel(logging.DEBUG)
+        log_format = logging.Formatter(kwargs['log_format'])
+        log_to_file.setFormatter(log_format)
+        LOG.addHandler(log_to_file)
         connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
                                       '%(mq_host)s:%(mq_port)s//'
                                       % kwargs['mq_args'])

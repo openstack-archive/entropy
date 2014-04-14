@@ -33,15 +33,17 @@ LOG = logging.getLogger(__name__)
 # TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
 engine_cfg = os.path.join(os.getcwd(), 'entropy', 'examples',
                           'cfg', 'engines.cfg')
-log_file = os.path.join(os.getcwd(), 'entropy', 'examples',
-                        'logs', 'entropy.log')
 
 
 def get_cfg_file(engine, script_type):
     cfg_key = {'audit': 'audit_cfg', 'repair': 'repair_cfg'}
-    engine_config = dict(utils.load_yaml(engine_cfg).next())[engine]
-    this_engine_cfg = dict(utils.load_yaml(engine_config).next())[engine]
-    return this_engine_cfg[cfg_key[script_type]]
+    try:
+        engine_config = dict(utils.load_yaml(engine_cfg).next())[engine]
+        this_engine_cfg = dict(utils.load_yaml(engine_config).next())[engine]
+        return this_engine_cfg[cfg_key[script_type]]
+    except KeyError:
+        LOG.exception('Could not find engine/react script')
+        return None
 
 
 def add_to_list(engine, script_type, **kwargs):
@@ -149,9 +151,11 @@ def parse():
 
 
 if __name__ == '__main__':
-    #TODO(praneshp): AMQP, json->yaml, reaction scripts(after amqp)
-    FORMAT = '%(filename)s %(lineno)s %(message)s'
-    logging.basicConfig(filename=log_file,
-                        level=logging.DEBUG,
-                        format=FORMAT)
+    FORMAT = '%(lineno)s %(message)s'
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    console.setFormatter(FORMAT)
+    LOG.addHandler(console)
+    print LOG.handlers
+#    logging.basicConfig(level=logging.DEBUG)
     parse()
