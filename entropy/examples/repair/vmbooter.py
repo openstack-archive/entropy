@@ -83,13 +83,18 @@ def parse_conf(conf):
         return kwargs
 
 
-def main(**kwargs):
-    LOG.handlers = []
+def set_logger(logger, **kwargs):
+    logger.handlers = []
     log_to_file = logging.FileHandler(kwargs['log_file'])
     log_to_file.setLevel(logging.DEBUG)
     log_format = logging.Formatter(kwargs['log_format'])
     log_to_file.setFormatter(log_format)
-    LOG.addHandler(log_to_file)
+    logger.addHandler(log_to_file)
+    logger.propagate = False
+
+
+def main(**kwargs):
+    set_logger(LOG, **kwargs)
     LOG.info('starting react script %s' % kwargs['name'])
     args = parse_conf(kwargs['conf'])
     recv_message(**args)

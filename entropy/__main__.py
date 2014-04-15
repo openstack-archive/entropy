@@ -31,8 +31,7 @@ from entropy import utils
 LOG = logging.getLogger(__name__)
 
 # TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
-engine_cfg = os.path.join(os.getcwd(), 'entropy', 'examples',
-                          'cfg', 'engines.cfg')
+engine_cfg = os.path.join('/tmp', 'engines.cfg')
 
 
 def get_cfg_file(engine, script_type):
@@ -100,7 +99,7 @@ def start_engine(args):
         return
 
     cfg_data = dict(utils.load_yaml(args.engine_cfg).next())[args.name]
-    cfg = {args.name: args.engine_cfg}
+    cfg = {args.name: os.path.join(os.getcwd(), args.engine_cfg)}
     with open(engine_cfg, "w") as cfg_file:
         cfg_file.write(yaml.dump(cfg, canonical=False,
                        default_flow_style=False,
@@ -150,12 +149,12 @@ def parse():
     args.func(args)
 
 
-if __name__ == '__main__':
-    FORMAT = '%(lineno)s %(message)s'
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    console.setFormatter(FORMAT)
-    LOG.addHandler(console)
-    print LOG.handlers
-#    logging.basicConfig(level=logging.DEBUG)
+def main():
+    console_format = '%(filename)s %(lineno)s %(message)s'
+    logging.basicConfig(format=console_format,
+                        level=logging.INFO)
     parse()
+
+
+if __name__ == '__main__':
+    main()

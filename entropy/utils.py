@@ -117,3 +117,15 @@ def check_duplicate(name, cfg_file):
     if name in names:
         return True
     return False
+
+
+def reset_logger(log):
+    if not log:
+        return
+    handlers = list(log.handlers)
+    for h in handlers:
+        h.flush()
+        h.close()
+        log.removeHandler(h)
+    log.setLevel(logging.NOTSET)
+    log.addHandler(logging.NullHandler())
