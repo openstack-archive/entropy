@@ -16,6 +16,7 @@ import logging
 
 from kombu import Queue
 
+from entropy import utils
 
 LOG = logging.getLogger(__name__)
 
@@ -24,12 +25,23 @@ class AuditBase(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, **kwargs):
+        utils.reset_logger(logging.getLogger())
         self.name = kwargs['name']
         self.exchange = kwargs['exchange']
         self.routing_key = kwargs['routing_key']
         self.message_queue = Queue(self.name,
                                    self.exchange,
                                    self.routing_key)
+
+    @staticmethod
+    def set_logger(logger, **kwargs):
+        logger.handlers = []
+        log_to_file = logging.FileHandler(kwargs['log_file'])
+        log_to_file.setLevel(logging.DEBUG)
+        log_format = logging.Formatter(kwargs['log_format'])
+        log_to_file.setFormatter(log_format)
+        logger.addHandler(log_to_file)
+        logger.propagate = False
 
     @abc.abstractmethod
     def send_message(self, **kwargs):
