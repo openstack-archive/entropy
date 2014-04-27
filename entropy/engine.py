@@ -22,6 +22,7 @@ import os
 
 import croniter
 from kombu import Exchange
+from kombu import Queue
 import pause
 
 from entropy import utils
@@ -39,6 +40,7 @@ class Engine(object):
         self.audit_type = 'audit'
         self.repair_type = 'repair'
         self.entropy_exchange = Exchange('entropy_exchage', type='fanout')
+        self.known_queues = []
         # engine variables
         self.name = name
         self.audit_cfg = cfg_data['audit_cfg']
@@ -129,15 +131,24 @@ class Engine(object):
         available_modules = imp.find_module(reactor, [search_path])
         LOG.info('Found these modules: %s', available_modules)
         try:
-            imported_module = imp.load_module(react_script, *available_modules)
+            # create any queues this react script wants, add it to a list
+            # of known queues
+            message_queue = Queue(self.name,
+                                  self.entropy_exchange,
+                                  data['routing_key'])
+            if message_queue not in self.known_queues:
+                self.known_queues.append(message_queue)
             kwargs = data
             kwargs['conf'] = script['conf']
-            # add this job to list of running audits
+            kwargs['exchange'] = self.entropy_exchange
+            kwargs['message_queue'] = message_queue
+            # add this job to list of running repairs
             self.running_repairs.append(script['name'])
+            imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
             return future
         except Exception:
-            LOG.exception("Could not setup %s", kwargs['name'])
+            LOG.exception("Could not setup %s", script['name'])
             return None
 
     def setup_audit(self, script):
@@ -156,7 +167,7 @@ class Engine(object):
         cron = croniter.croniter(schedule, now)
         next_iteration = cron.get_next(datetime.datetime)
         while True:
-            LOG.info('Next call at %s', next_iteration)
+            LOG.info('It is %s, Next call at %s', now, next_iteration)
             pause.until(next_iteration)
             self.run_audit(script)
             next_iteration = cron.get_next(datetime.datetime)
@@ -174,7 +185,7 @@ class Engine(object):
         kwargs['mq_args'] = mq_args
         kwargs['exchange'] = self.entropy_exchange
         # Put a message on the mq
-        #TODO(praneshp): this should be the path with register-audit
+        # TODO(praneshp): this should be the path with register-audit
         try:
             audit_script = kwargs['module']
             search_path, auditor = utils.get_filename_and_path(audit_script)
@@ -184,4 +195,4 @@ class Engine(object):
             audit_obj = imported_module.Audit(**kwargs)
             audit_obj.send_message(**kwargs)
         except Exception:
-                LOG.exception('Could not run audit %s', kwargs['name'])
+                LOG.exception('Could not run audit %s', script['name'])

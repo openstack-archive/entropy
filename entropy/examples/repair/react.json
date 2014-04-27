@@ -1,0 +1,14 @@
+{
+    "name" : "react",
+    "script": "/home/praneshp/code/entropy/entropy/examples/repair/react",
+    "hostname" : "localhost",
+    "username" : "praneshp",
+    "ssh-key" : "id_rsa",
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "guest",
+    "mq_password": "guest",
+    "routing_key": "demo",
+    "log_file": "/home/praneshp/code/entropy/entropy/examples/logs/demo.log",
+    "log_format": "%(filename)s %(lineno)s %(message)s"
+}

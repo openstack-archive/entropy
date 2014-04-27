@@ -31,7 +31,8 @@ from entropy import utils
 
 LOG = logging.getLogger(__name__)
 
-# TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
+# TODO(praneshp): Later, maybe find a way to make this configurable.
+# Well known file where all engines are stored.
 engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
 
 
@@ -62,15 +63,15 @@ def add_to_list(engine, script_type, **kwargs):
 
 
 def register_audit(args):
-    #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
+    # TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
     LOG.info('Registering audit script %s', args.name)
 
-    #First check if you have all inputs
+    # First check if you have all inputs
     if not (args.conf and args.name and args.engine):
         LOG.error('Need path to script, json and engine name')
         return
 
-    #Write to audit file
+    # Write to audit file
     audit_cfg_args = {'name': args.name,
                       'conf': os.path.join(os.getcwd(), args.conf)}
     if add_to_list(args.engine, 'audit', **audit_cfg_args):
@@ -78,15 +79,15 @@ def register_audit(args):
 
 
 def register_repair(args):
-    #TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
+    # TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
     LOG.info('Registering repair script %s', args.name)
 
-     #First check if you have all inputs
+    # First check if you have all inputs
     if not (args.conf and args.name and args.engine):
         LOG.error('Need path to script, json and engine name')
         return
 
-    #Write to audit file
+    # Write to audit file
     repair_cfg_args = {'name': args.name,
                        'conf': os.path.join(os.getcwd(), args.conf)}
     if add_to_list(args.engine, 'repair', **repair_cfg_args):

@@ -26,13 +26,19 @@ LOG = logging.getLogger(__name__)
 
 class Audit(base.AuditBase):
     def send_message(self, **kwargs):
+        Audit.set_logger(LOG, **kwargs)
         connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
-                                      '%(mq_host)s:%(mq_port)s//' % kwargs)
+                                      '%(mq_host)s:%(mq_port)s//' %
+                                      kwargs['mq_args'])
         message = {'From': __file__,
                    'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
-            maybe_declare(kwargs['exchange'], producer.channel)
-            producer.publish(message,
-                             exchange=kwargs['exchange'],
-                             routing_key=kwargs['routing_key'],
-                             serializer='json')
+            try:
+                maybe_declare(kwargs['exchange'], producer.channel)
+                producer.publish(message,
+                                 exchange=self.exchange,
+                                 routing_key=self.routing_key,
+                                 serializer='json')
+                LOG.debug("%s published message", self.name)
+            except Exception:
+                LOG.exception("%s could not send message", self.name)
