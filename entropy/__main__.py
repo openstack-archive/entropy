@@ -31,7 +31,8 @@ from entropy import utils
 
 LOG = logging.getLogger(__name__)
 
-# TODO(praneshp): Only hardcoded stuff in the project. Find a way to move
+# TODO(praneshp): Later, maybe find a way to make this configurable.
+# Well known file where all engines are stored.
 engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
 
 

@@ -29,9 +29,6 @@ class AuditBase(object):
         self.name = kwargs['name']
         self.exchange = kwargs['exchange']
         self.routing_key = kwargs['routing_key']
-        self.message_queue = Queue(self.name,
-                                   self.exchange,
-                                   self.routing_key)
 
     @staticmethod
     def set_logger(logger, **kwargs):
