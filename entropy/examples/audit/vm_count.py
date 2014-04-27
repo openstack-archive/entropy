@@ -32,7 +32,7 @@ class Audit(base.AuditBase):
         # http://libvirt.org/guide/html/
         # Application_Development_Guide-Architecture-Remote_URIs.html
 
-        #only one hv for this audit script
+        # only one hv for this audit script
         uri = '%(driver)s+%(transport)s://%(username)s@%(compute_hosts)s\
                 :%(port)s/%(path)s' % kwargs
         try:
