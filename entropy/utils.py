@@ -43,7 +43,7 @@ def get_key_path():
 
 def load_yaml(filename):
     with open(filename, "rb") as fh:
-        return yaml.safe_load_all(fh.read())
+        return yaml.safe_load(fh.read())
 
 
 # importer functions.
@@ -129,3 +129,10 @@ def reset_logger(log):
         log.removeHandler(h)
     log.setLevel(logging.NOTSET)
     log.addHandler(logging.NullHandler())
+
+
+def write_yaml(data, filename):
+    with open(filename, "a") as cfg_file:
+        cfg_file.write(yaml.safe_dump(data,
+                                      default_flow_style=False,
+                                      canonical=False))

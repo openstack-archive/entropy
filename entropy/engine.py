@@ -111,12 +111,12 @@ class Engine(object):
 
         scripts = utils.load_yaml(cfg)
         futures = []
-
-        for script in scripts:
-            if script['name'] not in running_scripts:
-                future = setup_func(script)
-                if future is not None:
-                    futures.append(future)
+        if scripts:
+            for script in scripts:
+                if script['name'] not in running_scripts:
+                    future = setup_func(script)
+                    if future is not None:
+                        futures.append(future)
         LOG.info('Running %s scripts %s', script_type,
                  ', '.join(running_scripts))
         return futures
@@ -170,6 +170,7 @@ class Engine(object):
             LOG.info('It is %s, Next call at %s', now, next_iteration)
             pause.until(next_iteration)
             self.run_audit(script)
+            now = datetime.datetime.now()
             next_iteration = cron.get_next(datetime.datetime)
 
     def run_audit(self, script):
