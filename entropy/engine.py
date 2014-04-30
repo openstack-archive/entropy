@@ -170,6 +170,7 @@ class Engine(object):
             LOG.info('It is %s, Next call at %s', now, next_iteration)
             pause.until(next_iteration)
             self.run_audit(script)
+            now = datetime.datetime.now()
             next_iteration = cron.get_next(datetime.datetime)
 
     def run_audit(self, script):
