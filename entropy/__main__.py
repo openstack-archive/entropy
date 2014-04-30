@@ -36,8 +36,9 @@ def get_cfg_file(engine, script_type):
     cfg_key = {'audit': 'audit_cfg', 'repair': 'repair_cfg'}
     try:
         engine_config = dict(utils.load_yaml(engine_cfg).next())[engine]
-        this_engine_cfg = dict(utils.load_yaml(engine_config).next())[engine]
-        return this_engine_cfg[cfg_key[script_type]]
+        this_engine_cfg_file = engine_config['cfg']
+        this_engine_cfg = dict(utils.load_yaml(this_engine_cfg_file).next())
+        return this_engine_cfg[engine][cfg_key[script_type]]
     except KeyError:
         LOG.exception('Could not find engine/react script')
         return None
@@ -95,9 +96,12 @@ def start_engine(args):
     if not (args.name and args.engine_cfg):
         LOG.error('Need name and engine cfg')
         return
-
     cfg_data = dict(utils.load_yaml(args.engine_cfg).next())[args.name]
-    cfg = {args.name: os.path.join(os.getcwd(), args.engine_cfg)}
+    cfg = {args.name:
+           {'cfg': os.path.join(os.getcwd(), args.engine_cfg),
+            'pid': os.getpid()
+            }
+           }
     with open(engine_cfg, "w") as cfg_file:
         cfg_file.write(yaml.dump(cfg, canonical=False,
                        default_flow_style=False,
