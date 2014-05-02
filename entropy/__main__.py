@@ -20,8 +20,6 @@ import logging
 import os
 import tempfile
 
-import yaml
-
 from engine import Engine
 from entropy import utils
 
@@ -35,32 +33,35 @@ engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
 def get_cfg_file(engine, script_type):
     cfg_key = {'audit': 'audit_cfg', 'repair': 'repair_cfg'}
     try:
-        engine_config = dict(utils.load_yaml(engine_cfg).next())
+        engine_config = dict(utils.load_yaml(engine_cfg))[engine]
         this_engine_cfg_file = engine_config['cfg']
-        this_engine_cfg = dict(utils.load_yaml(this_engine_cfg_file).next())
+        this_engine_cfg = dict(utils.load_yaml(this_engine_cfg_file))
         return this_engine_cfg[engine][cfg_key[script_type]]
     except KeyError:
         LOG.exception('Could not find engine/react script')
         return None
 
 
-def add_to_list(engine, script_type, **kwargs):
+def add_to_list(engine, script_type, script_name, **script_args):
     cfg_file = get_cfg_file(engine, script_type)
     if cfg_file is None:
         LOG.error('Could not find cfg file')
         return
-    if utils.check_duplicate(kwargs['name'], cfg_file):
+    if utils.check_duplicate(script_name, cfg_file):
         LOG.error('%s already exists, not registering', script_type)
         return
-    with open(cfg_file, "a") as cfg:
-        cfg.write(yaml.dump(kwargs, canonical=False,
-                            default_flow_style=False,
-                            explicit_start=True))
+    try:
+        data = {
+            script_name: script_args
+        }
+        utils.write_yaml(data, cfg_file)
         return True
+    except Exception:
+        LOG.exception("Could not register %s script %s", script_type,
+                      script_name)
 
 
 def register_audit(args):
-    # TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
     LOG.info('Registering audit script %s', args.name)
 
     # First check if you have all inputs
@@ -69,14 +70,12 @@ def register_audit(args):
         return
 
     # Write to audit file
-    audit_cfg_args = {'name': args.name,
-                      'conf': os.path.join(os.getcwd(), args.conf)}
-    if add_to_list(args.engine, 'audit', **audit_cfg_args):
+    audit_cfg_args = {'cfg': os.path.join(os.getcwd(), args.conf)}
+    if add_to_list(args.engine, 'audit', args.name, **audit_cfg_args):
         LOG.info('Registered audit %s', args.name)
 
 
 def register_repair(args):
-    # TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
     LOG.info('Registering repair script %s', args.name)
 
     # First check if you have all inputs
@@ -85,9 +84,8 @@ def register_repair(args):
         return
 
     # Write to audit file
-    repair_cfg_args = {'name': args.name,
-                       'conf': os.path.join(os.getcwd(), args.conf)}
-    if add_to_list(args.engine, 'repair', **repair_cfg_args):
+    repair_cfg_args = {'cfg': os.path.join(os.getcwd(), args.conf)}
+    if add_to_list(args.engine, 'repair', args.name, **repair_cfg_args):
         LOG.info('Registered repair script %s', args.name)
 
 
