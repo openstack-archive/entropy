@@ -113,19 +113,19 @@ class Engine(object):
         futures = []
         if scripts:
             for script in scripts:
-                if script['name'] not in running_scripts:
-                    future = setup_func(script)
+                if script not in running_scripts:
+                    future = setup_func(script, **scripts[script])
                     if future is not None:
                         futures.append(future)
         LOG.info('Running %s scripts %s', script_type,
                  ', '.join(running_scripts))
         return futures
 
-    def setup_react(self, script):
-        LOG.info('Setting up reactor %s', script['name'])
+    def setup_react(self, script, **script_args):
+        LOG.info('Setting up reactor %s', script)
 
         # Pick out relevant info
-        data = dict(utils.load_yaml(script['conf']).next())
+        data = dict(utils.load_yaml(script_args['cfg']))
         react_script = data['script']
         search_path, reactor = utils.get_filename_and_path(react_script)
         available_modules = imp.find_module(reactor, [search_path])
@@ -139,29 +139,29 @@ class Engine(object):
             if message_queue not in self.known_queues:
                 self.known_queues.append(message_queue)
             kwargs = data
-            kwargs['conf'] = script['conf']
+            kwargs['conf'] = script_args['cfg']
             kwargs['exchange'] = self.entropy_exchange
             kwargs['message_queue'] = message_queue
             # add this job to list of running repairs
-            self.running_repairs.append(script['name'])
+            self.running_repairs.append(script)
             imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
             return future
         except Exception:
-            LOG.exception("Could not setup %s", script['name'])
+            LOG.exception("Could not setup %s", script)
             return None
 
-    def setup_audit(self, script):
-        LOG.info('Setting up audit script %s', script['name'])
+    def setup_audit(self, script, **script_args):
+        LOG.info('Setting up audit script %s', script)
         # add this job to list of running audits
-        self.running_audits.append(script['name'])
+        self.running_audits.append(script)
         # start a process for this audit script
-        future = self.executor.submit(self.start_audit, script)
+        future = self.executor.submit(self.start_audit, script, **script_args)
         return future
 
-    def start_audit(self, script):
-        LOG.info("Starting audit for %s", script['name'])
-        data = dict(utils.load_yaml(script['conf']).next())
+    def start_audit(self, script, **script_args):
+        LOG.info("Starting audit for %s", script)
+        data = dict(utils.load_yaml(script_args['cfg']))
         schedule = data['schedule']
         now = datetime.datetime.now()
         cron = croniter.croniter(schedule, now)
@@ -169,13 +169,16 @@ class Engine(object):
         while True:
             LOG.info('It is %s, Next call at %s', now, next_iteration)
             pause.until(next_iteration)
-            self.run_audit(script)
+            try:
+                self.run_audit(script, **script_args)
+            except Exception:
+                LOG.exception('Could not run %s at %s', script, next_iteration)
             now = datetime.datetime.now()
             next_iteration = cron.get_next(datetime.datetime)
 
-    def run_audit(self, script):
+    def run_audit(self, script, **script_args):
         # Read the conf file
-        data = dict(utils.load_yaml(script['conf']).next())
+        data = dict(utils.load_yaml(script_args['cfg']))
         # general stuff for the audit module
         # TODO(praneshp): later, fix to send only one copy of mq_args
         mq_args = {'mq_host': data['mq_host'],
@@ -196,4 +199,4 @@ class Engine(object):
             audit_obj = imported_module.Audit(**kwargs)
             audit_obj.send_message(**kwargs)
         except Exception:
-                LOG.exception('Could not run audit %s', script['name'])
+                LOG.exception('Could not run audit %s', script)
