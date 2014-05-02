@@ -49,7 +49,7 @@ def add_to_list(engine, script_type, **kwargs):
     if cfg_file is None:
         LOG.error('Could not find cfg file')
         return
-    if utils.check_duplicate(kwargs['name'], cfg_file):
+    if utils.check_duplicate(kwargs.keys()[0], cfg_file):
         LOG.error('%s already exists, not registering', script_type)
         return
     with open(cfg_file, "a") as cfg:
@@ -60,7 +60,6 @@ def add_to_list(engine, script_type, **kwargs):
 
 
 def register_audit(args):
-    # TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
     LOG.info('Registering audit script %s', args.name)
 
     # First check if you have all inputs
@@ -69,14 +68,14 @@ def register_audit(args):
         return
 
     # Write to audit file
-    audit_cfg_args = {'name': args.name,
-                      'conf': os.path.join(os.getcwd(), args.conf)}
+    audit_cfg_args = {args.name:
+                      {'conf': os.path.join(os.getcwd(), args.conf)}
+                      }
     if add_to_list(args.engine, 'audit', **audit_cfg_args):
         LOG.info('Registered audit %s', args.name)
 
 
 def register_repair(args):
-    # TODO(praneshp) check for sanity (file exists, imp parameters exist, etc)
     LOG.info('Registering repair script %s', args.name)
 
     # First check if you have all inputs
@@ -85,8 +84,9 @@ def register_repair(args):
         return
 
     # Write to audit file
-    repair_cfg_args = {'name': args.name,
-                       'conf': os.path.join(os.getcwd(), args.conf)}
+    repair_cfg_args = {args.name:
+                      {'conf': os.path.join(os.getcwd(), args.conf)}
+                       }
     if add_to_list(args.engine, 'repair', **repair_cfg_args):
         LOG.info('Registered repair script %s', args.name)
 
