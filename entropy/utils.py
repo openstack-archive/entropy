@@ -110,13 +110,9 @@ def watch_dir_for_change(dir_to_watch, event_fn):
     return observer
 
 
-# TODO(praneshp) move this to utils
 def check_duplicate(name, cfg_file):
     scripts = load_yaml(cfg_file)
-    names = [script['name'] for script in scripts]
-    if name in names:
-        return True
-    return False
+    return scripts and name in scripts.keys()
 
 
 def reset_logger(log):
