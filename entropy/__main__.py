@@ -101,6 +101,14 @@ def start_engine(args):
         }
     }
     utils.write_yaml(cfg, engine_cfg)
+    # create cfg files
+    for filename in ['audit_cfg', 'repair_cfg']:
+        try:
+            with open(cfg_data[filename]):
+                pass
+        except IOError:
+            with open(cfg_data[filename], 'a'):
+                pass
     LOG.info('Added %s to engine cfg', args.name)
     entropy_engine = Engine(args.name, **cfg_data)
     entropy_engine.run()

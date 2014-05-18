@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from collections import deque
 import datetime
 import logging
 import operator
@@ -85,7 +84,7 @@ class Engine(object):
         self.futures.append(scheduler)
 
     def schedule(self):
-        d = deque(self.run_queue)
+        #d = deque(self.run_queue)
         pass
 
     def start_serializer(self):
