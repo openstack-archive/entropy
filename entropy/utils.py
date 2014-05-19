@@ -17,6 +17,7 @@
 import logging
 import os
 import sys
+import time
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -132,3 +133,93 @@ def write_yaml(data, filename):
         cfg_file.write(yaml.safe_dump(data,
                                       default_flow_style=False,
                                       canonical=False))
+
+
+def wallclock():
+    # NOTE(harlowja): made into a function so that this can be easily mocked
+    # out if we want to alter time related functionality (for testing
+    # purposes).
+    return time.time()
+
+
+# From taskflow:
+# https://github.com/openstack/taskflow/blob/master/taskflow/utils/misc.py
+class StopWatch(object):
+    """A simple timer/stopwatch helper class.
+
+    Inspired by: apache-commons-lang java stopwatch.
+
+    Not thread-safe.
+    """
+    _STARTED = 'STARTED'
+    _STOPPED = 'STOPPED'
+
+    def __init__(self, duration=None):
+        self._duration = duration
+        self._started_at = None
+        self._stopped_at = None
+        self._state = None
+
+    def start(self):
+        if self._state == self._STARTED:
+            return self
+        self._started_at = wallclock()
+        self._stopped_at = None
+        self._state = self._STARTED
+        return self
+
+    def elapsed(self):
+        if self._state == self._STOPPED:
+            return float(self._stopped_at - self._started_at)
+        elif self._state == self._STARTED:
+            return float(wallclock() - self._started_at)
+        else:
+            raise RuntimeError("Can not get the elapsed time of an invalid"
+                               " stopwatch")
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        try:
+            self.stop()
+        except RuntimeError:
+            pass
+        # NOTE(harlowja): don't silence the exception.
+        return False
+
+    def leftover(self):
+        if self._duration is None:
+            raise RuntimeError("Can not get the leftover time of a watch that"
+                               " has no duration")
+        if self._state != self._STARTED:
+            raise RuntimeError("Can not get the leftover time of a stopwatch"
+                               " that has not been started")
+        end_time = self._started_at + self._duration
+        return max(0.0, end_time - wallclock())
+
+    def expired(self):
+        if self._duration is None:
+            return False
+        if self.elapsed() > self._duration:
+            return True
+        return False
+
+    def resume(self):
+        if self._state == self._STOPPED:
+            self._state = self._STARTED
+            return self
+        else:
+            raise RuntimeError("Can not resume a stopwatch that has not been"
+                               " stopped")
+
+    def stop(self):
+        if self._state == self._STOPPED:
+            return self
+        if self._state != self._STARTED:
+            raise RuntimeError("Can not stop a stopwatch that has not been"
+                               " started")
+        self._stopped_at = wallclock()
+        self._state = self._STOPPED
+        return self
