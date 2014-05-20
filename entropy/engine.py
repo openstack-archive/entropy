@@ -49,6 +49,7 @@ class Engine(object):
         self.audit_cfg = cfg_data['audit_cfg']
         self.repair_cfg = cfg_data['repair_cfg']
         self.serializer_schedule = cfg_data['serializer_schedule']
+        self.engine_timeout = cfg_data['engine_timeout']
         # TODO(praneshp): Assuming cfg files are in 1 dir. Change later
         self.cfg_dir = os.path.dirname(self.audit_cfg)
         self.log_file = cfg_data['log_file']
@@ -87,6 +88,24 @@ class Engine(object):
 
     def schedule(self):
         pass
+
+    def wait_next(self, timeout=None):
+        watch = None
+        if timeout is not None:
+            watch = utils.StopWatch(duration=float(timeout))
+            watch.start()
+
+        try:
+            while True:
+                if not self.run_queue:
+                    if watch and watch.expired():
+                        raise Exception("Expired after waiting for audits"
+                                        "to arrive for %s", watch.elapsed())
+                else:
+                    # Grab all the jobs for the next time.
+                    pass
+        finally:
+            pass
 
     def start_serializer(self):
         schedule = self.serializer_schedule
