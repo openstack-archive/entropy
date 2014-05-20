@@ -25,6 +25,7 @@ import croniter
 from kombu import Exchange
 from kombu import Queue
 import pause
+import six
 
 from entropy import utils
 import imp
@@ -110,7 +111,7 @@ class Engine(object):
 
             new_additions = []
 
-            for key in schedules.keys():
+            for key in six.iterkeys(schedules):
                 sched = schedules[key]
                 now = datetime.datetime.now()
                 cron = croniter.croniter(sched, now)

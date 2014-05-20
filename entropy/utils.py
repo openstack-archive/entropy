@@ -19,6 +19,7 @@ import os
 import sys
 import time
 
+import six
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import yaml
@@ -97,7 +98,7 @@ class WatchdogHandler(FileSystemEventHandler):
         self.event_fn = event_fn
 
     def on_modified(self, event):
-        if event.src_path in self.event_fn.keys():
+        if event.src_path in six.iterkeys(self.event_fn):
             self.event_fn[event.src_path]()
         else:
             LOG.error('no associated function for %s', event.src_path)
@@ -113,7 +114,7 @@ def watch_dir_for_change(dir_to_watch, event_fn):
 
 def check_duplicate(name, cfg_file):
     scripts = load_yaml(cfg_file)
-    return scripts and name in scripts.keys()
+    return scripts and name in scripts
 
 
 def reset_logger(log):
