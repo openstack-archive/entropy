@@ -14,10 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import time
 import logging
 import os
 import sys
-import time
 
 import six
 from watchdog.events import FileSystemEventHandler
@@ -98,7 +98,7 @@ class WatchdogHandler(FileSystemEventHandler):
         self.event_fn = event_fn
 
     def on_modified(self, event):
-        if event.src_path in six.iterkeys(self.event_fn):
+        if event.src_path in self.event_fn:
             self.event_fn[event.src_path]()
         else:
             LOG.error('no associated function for %s', event.src_path)
