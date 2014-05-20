@@ -96,9 +96,11 @@ def find_module(base_name, search_paths, required_attrs=None):
 class WatchdogHandler(FileSystemEventHandler):
     def __init__(self, event_fn):
         self.event_fn = event_fn
+        print self.event_fn
 
     def on_modified(self, event):
-        if event.src_path in six.iterkeys(self.event_fn):
+        print "modified!!, event.src_path"
+        if event.src_path in self.event_fn:
             self.event_fn[event.src_path]()
         else:
             LOG.error('no associated function for %s', event.src_path)
@@ -114,7 +116,7 @@ def watch_dir_for_change(dir_to_watch, event_fn):
 
 def check_duplicate(name, cfg_file):
     scripts = load_yaml(cfg_file)
-    return scripts and name in scripts
+    return scripts and name in six.iterkeys(scripts)
 
 
 def reset_logger(log):

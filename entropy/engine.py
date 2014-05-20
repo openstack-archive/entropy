@@ -49,6 +49,7 @@ class Engine(object):
         self.audit_cfg = cfg_data['audit_cfg']
         self.repair_cfg = cfg_data['repair_cfg']
         self.serializer_schedule = cfg_data['serializer_schedule']
+        self.engine_timeout = cfg_data['engine_timeout']
         # TODO(praneshp): Assuming cfg files are in 1 dir. Change later
         self.cfg_dir = os.path.dirname(self.audit_cfg)
         self.log_file = cfg_data['log_file']
@@ -80,13 +81,47 @@ class Engine(object):
         self.futures.append(serializer)
 
         # Start react scripts.
-        self.futures.append(self.start_scripts('repair'))
+        self.futures.append(self.start_react_scripts())
 
         scheduler = self.executor.submit(self.schedule)
         self.futures.append(scheduler)
 
+        #watchdog
+        watchdog_thread = self.start_watchdog(self.cfg_dir)
+        watchdog_thread.join()
+
     def schedule(self):
-        pass
+        while True:
+            (next_time, next_jobs) = self.wait_next(self.engine_timeout)
+            # NOTE(praneshp): here, call a function that will wait till next
+            # time and call next_jobs,
+            self.setup_audit(next_time, next_jobs)
+            print 'doing: ', next_time, next_jobs
+
+    def wait_next(self, timeout=None):
+        watch = None
+        next_jobs = []
+        if timeout is not None:
+            watch = utils.StopWatch(duration=float(timeout))
+            watch.start()
+        try:
+            while True:
+                if not self.run_queue:
+                    if watch and watch.expired():
+                        raise Exception("Expired after waiting for audits"
+                                        "to arrive for %s", watch.elapsed())
+                else:
+                    # Grab all the jobs for the next time.
+                    next_jobs.append(self.run_queue.popleft())
+                    next_time = next_jobs[0]['time']
+                    l = len(self.run_queue)
+                    for i in xrange(l):
+                        if self.run_queue[0]['time'] == next_time:
+                            next_jobs.append(self.run_queue.popleft())
+                    print next_time, next_jobs
+                    return next_time, next_jobs
+        except Exception:
+            LOG.exception("Something went wrong")
 
     def start_serializer(self):
         schedule = self.serializer_schedule
@@ -132,17 +167,25 @@ class Engine(object):
     # TODO(praneshp): For now, only addition of scripts. Handle deletion later
     def audit_modified(self):
         LOG.info('Audit configuration changed')
-        self.futures.append(self.start_scripts('audit'))
+        #self.futures.append(self.start_scripts('audit'))
 
     def repair_modified(self):
+        print "HELLOOOOOOO"
         LOG.info('Repair configuration changed')
-        self.futures.append(self.start_scripts('repair'))
+        self.futures.append(self.start_react_scripts())
 
     def start_watchdog(self, dir_to_watch):
         event_fn = {self.audit_cfg: self.audit_modified,
                     self.repair_cfg: self.repair_modified}
         LOG.info(event_fn)
         return utils.watch_dir_for_change(dir_to_watch, event_fn)
+
+    def setup_audit(self, execution_time, audit_list):
+        LOG.info("At %s, Will run %s", execution_time, audit_list)
+        pause.until(execution_time)
+        audits =
+
+
 
     def start_scripts(self, script_type):
         if script_type == 'audit':
@@ -167,6 +210,18 @@ class Engine(object):
                         futures.append(future)
         LOG.info('Running %s scripts %s', script_type,
                  ', '.join(running_scripts))
+        return futures
+
+    def start_react_scripts(self):
+        scripts = utils.load_yaml(self.repair_cfg)
+        futures = []
+        if scripts:
+            for script in scripts:
+                if script not in self.running_repairs:
+                    future = self.setup_react(script, **scripts[script])
+                    if future is not None:
+                        futures.append(future)
+        LOG.info('Running repair scripts %s', ', '.join(self.running_repairs))
         return futures
 
     def setup_react(self, script, **script_args):
@@ -199,7 +254,7 @@ class Engine(object):
             LOG.exception("Could not setup %s", script)
             return None
 
-    def setup_audit(self, script, **script_args):
+    def setup_audit1(self, script, **script_args):
         LOG.info('Setting up audit script %s', script)
         # add this job to list of running audits
         self.running_audits.append(script)
