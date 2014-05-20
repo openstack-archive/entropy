@@ -15,6 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import collections
 import datetime
 import logging
 import operator
@@ -55,7 +56,7 @@ class Engine(object):
         self.running_audits = []
         self.running_repairs = []
         self.futures = []
-        self.run_queue = []
+        self.run_queue = collections.deque()
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -122,7 +123,7 @@ class Engine(object):
                     new_additions.append({'time': next_call, 'name': key})
 
             new_additions.sort(key=operator.itemgetter('time'))
-            self.run_queue += new_additions
+            self.run_queue.extend(new_additions)
             LOG.info("Run queue till %s is %s", next_iteration, self.run_queue)
         except Exception:
             LOG.exception("Could not run serializer for %s at %s",
