@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import logging
 import os
 import sys
@@ -98,7 +99,7 @@ class WatchdogHandler(FileSystemEventHandler):
         self.event_fn = event_fn
 
     def on_modified(self, event):
-        if event.src_path in six.iterkeys(self.event_fn):
+        if event.src_path in self.event_fn:
             self.event_fn[event.src_path]()
         else:
             LOG.error('no associated function for %s', event.src_path)
@@ -114,7 +115,7 @@ def watch_dir_for_change(dir_to_watch, event_fn):
 
 def check_duplicate(name, cfg_file):
     scripts = load_yaml(cfg_file)
-    return scripts and name in scripts
+    return scripts and name in six.iterkeys(scripts)
 
 
 def reset_logger(log):
@@ -136,11 +137,14 @@ def write_yaml(data, filename):
                                       canonical=False))
 
 
-def wallclock():
+def wallclock(type=None):
     # NOTE(harlowja): made into a function so that this can be easily mocked
     # out if we want to alter time related functionality (for testing
     # purposes).
-    return time.time()
+    if not type:
+        return time.time()
+    if type == "datetime":
+        return datetime.datetime()
 
 
 # From taskflow:
