@@ -1,5 +1,4 @@
 {
-    "name" : "audit",
     "routing_key": "pass",
     "hostname" : "localhost",
     "schedule" :"*/1 * * * *",
