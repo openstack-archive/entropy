@@ -30,7 +30,7 @@ class Audit(base.AuditBase):
         connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
                                       '%(mq_host)s:%(mq_port)s//' %
                                       kwargs['mq_args'])
-        message = {'From': __file__,
+        message = {'From': kwargs['name'],
                    'Date': str(datetime.datetime.now().isoformat())}
         with producers[connection].acquire(block=True) as producer:
             try:

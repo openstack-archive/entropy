@@ -49,6 +49,7 @@ class Engine(object):
         self.audit_cfg = cfg_data['audit_cfg']
         self.repair_cfg = cfg_data['repair_cfg']
         self.serializer_schedule = cfg_data['serializer_schedule']
+        self.engine_timeout = cfg_data['engine_timeout']
         # TODO(praneshp): Assuming cfg files are in 1 dir. Change later
         self.cfg_dir = os.path.dirname(self.audit_cfg)
         self.log_file = cfg_data['log_file']
@@ -80,13 +81,45 @@ class Engine(object):
         self.futures.append(serializer)
 
         # Start react scripts.
-        self.futures.append(self.start_scripts('repair'))
+        self.futures.append(self.start_react_scripts())
 
         scheduler = self.executor.submit(self.schedule)
         self.futures.append(scheduler)
 
+        #watchdog
+        watchdog_thread = self.start_watchdog(self.cfg_dir)
+        watchdog_thread.join()
+
     def schedule(self):
-        pass
+        while True:
+            (next_time, next_jobs) = self.wait_next(self.engine_timeout)
+            # NOTE(praneshp): here, call a function that will wait till next
+            # time and call next_jobs,
+            self.setup_audit(next_time, next_jobs)
+
+    def wait_next(self, timeout=None):
+        watch = None
+        next_jobs = []
+        if timeout is not None:
+            watch = utils.StopWatch(duration=float(timeout))
+            watch.start()
+        try:
+            while True:
+                if not self.run_queue:
+                    if watch and watch.expired():
+                        raise Exception("Expired after waiting for audits"
+                                        "to arrive for %s", watch.elapsed())
+                else:
+                    # Grab all the jobs for the next time.
+                    next_jobs.append(self.run_queue.popleft())
+                    next_time = next_jobs[0]['time']
+                    l = len(self.run_queue)
+                    for i in xrange(l):
+                        if self.run_queue[0]['time'] == next_time:
+                            next_jobs.append(self.run_queue.popleft())
+                    return next_time, next_jobs
+        except Exception:
+            LOG.exception("Something went wrong")
 
     def start_serializer(self):
         schedule = self.serializer_schedule
@@ -132,41 +165,46 @@ class Engine(object):
     # TODO(praneshp): For now, only addition of scripts. Handle deletion later
     def audit_modified(self):
         LOG.info('Audit configuration changed')
-        self.futures.append(self.start_scripts('audit'))
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
-        self.futures.append(self.start_scripts('repair'))
+        self.futures.append(self.start_react_scripts())
 
     def start_watchdog(self, dir_to_watch):
         event_fn = {self.audit_cfg: self.audit_modified,
                     self.repair_cfg: self.repair_modified}
-        LOG.info(event_fn)
+        LOG.debug(event_fn)
         return utils.watch_dir_for_change(dir_to_watch, event_fn)
 
-    def start_scripts(self, script_type):
-        if script_type == 'audit':
-            running_scripts = self.running_audits
-            setup_func = self.setup_audit
-            cfg = self.audit_cfg
-        elif script_type == 'repair':
-            running_scripts = self.running_repairs
-            setup_func = self.setup_react
-            cfg = self.repair_cfg
-        else:
-            LOG.error('Unknown script type %s', script_type)
-            return
+    def setup_audit(self, execution_time, audit_list):
+        try:
+            pause.until(execution_time)
+            LOG.info("Time: %s, Starting %s", execution_time, audit_list)
+            audits = utils.load_yaml(self.audit_cfg)
+            audit_futures = []
+            for audit in audit_list:
+                audit_name = audit['name']
+                audit_cfg = utils.load_yaml(audits[audit_name]['cfg'])
+                future = self.executor.submit(self.run_audit,
+                                              audit_name=audit_name,
+                                              **audit_cfg)
+                audit_futures.append(future)
+            if audit_futures:
+                self.futures.append(audit_futures)
+        except Exception:
+            LOG.exception("Could not run all audits in %s at %s",
+                          execution_time, audit_list)
 
-        scripts = utils.load_yaml(cfg)
+    def start_react_scripts(self):
+        scripts = utils.load_yaml(self.repair_cfg)
         futures = []
         if scripts:
             for script in scripts:
-                if script not in running_scripts:
-                    future = setup_func(script, **scripts[script])
+                if script not in self.running_repairs:
+                    future = self.setup_react(script, **scripts[script])
                     if future is not None:
                         futures.append(future)
-        LOG.info('Running %s scripts %s', script_type,
-                 ', '.join(running_scripts))
+        LOG.info('Running repair scripts %s', ', '.join(self.running_repairs))
         return futures
 
     def setup_react(self, script, **script_args):
@@ -177,7 +215,7 @@ class Engine(object):
         react_script = data['script']
         search_path, reactor = utils.get_filename_and_path(react_script)
         available_modules = imp.find_module(reactor, [search_path])
-        LOG.info('Found these modules: %s', available_modules)
+        LOG.debug('Found these modules: %s', available_modules)
         try:
             # create any queues this react script wants, add it to a list
             # of known queues
@@ -199,34 +237,8 @@ class Engine(object):
             LOG.exception("Could not setup %s", script)
             return None
 
-    def setup_audit(self, script, **script_args):
-        LOG.info('Setting up audit script %s', script)
-        # add this job to list of running audits
-        self.running_audits.append(script)
-        # start a process for this audit script
-        future = self.executor.submit(self.start_audit, script, **script_args)
-        return future
-
-    def start_audit(self, script, **script_args):
-        LOG.info("Starting audit for %s", script)
-        data = dict(utils.load_yaml(script_args['cfg']))
-        schedule = data['schedule']
-        now = datetime.datetime.now()
-        cron = croniter.croniter(schedule, now)
-        next_iteration = cron.get_next(datetime.datetime)
-        while True:
-            LOG.info('It is %s, Next call at %s', now, next_iteration)
-            pause.until(next_iteration)
-            try:
-                self.run_audit(script, **script_args)
-            except Exception:
-                LOG.exception('Could not run %s at %s', script, next_iteration)
-            now = datetime.datetime.now()
-            next_iteration = cron.get_next(datetime.datetime)
-
-    def run_audit(self, script, **script_args):
-        # Read the conf file
-        data = dict(utils.load_yaml(script_args['cfg']))
+    def run_audit(self, audit_name, **audit_cfg):
+        data = audit_cfg
         # general stuff for the audit module
         # TODO(praneshp): later, fix to send only one copy of mq_args
         mq_args = {'mq_host': data['mq_host'],
@@ -236,6 +248,7 @@ class Engine(object):
         kwargs = data
         kwargs['mq_args'] = mq_args
         kwargs['exchange'] = self.entropy_exchange
+        kwargs['name'] = audit_name
         # Put a message on the mq
         # TODO(praneshp): this should be the path with register-audit
         try:
@@ -247,4 +260,4 @@ class Engine(object):
             audit_obj = imported_module.Audit(**kwargs)
             audit_obj.send_message(**kwargs)
         except Exception:
-                LOG.exception('Could not run audit %s', script)
+                LOG.exception('Could not run audit %s', audit_name)
