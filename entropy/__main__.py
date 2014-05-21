@@ -90,18 +90,33 @@ def start_engine(args):
     if not (args.name and args.engine_cfg):
         LOG.error('Need name and engine cfg')
         return
-    cfg_data = dict(utils.load_yaml(args.engine_cfg))[args.name]
-    cfg = {
-        args.name: {
-            'cfg': os.path.join(os.getcwd(), args.engine_cfg),
-            'pid': os.getpid(),
-            'backend': cfg_data['backend']
+    utils.create_files([engine_cfg])
+    if args.purge:
+        utils.purge_disabled(engine_cfg)
+    if utils.check_exists_and_enabled(args.name, engine_cfg):
+        LOG.error("An engine of the same name %s is already "
+                  "registered and running", args.name)
+        return
+    if utils.check_exists_and_disabled(args.name, engine_cfg):
+        LOG.error("And engine of the same name %s is already "
+                  "registered, but disabled. Run with purge?", args.name)
+        return
+    try:
+        cfg_data = dict(utils.load_yaml(args.engine_cfg))[args.name]
+        cfg = {
+            args.name: {
+                'cfg': os.path.join(os.getcwd(), args.engine_cfg),
+                'pid': os.getpid(),
+                'backend': cfg_data['backend']
+            }
         }
-    }
-    utils.write_yaml(cfg, engine_cfg)
-    LOG.info('Added %s to engine cfg', args.name)
-    entropy_engine = Engine(args.name, **cfg_data)
-    entropy_engine.run()
+        utils.write_yaml(cfg, engine_cfg)
+        LOG.info('Added %s to engine cfg', args.name)
+        entropy_engine = Engine(args.name, **cfg_data)
+        entropy_engine.run()
+    except Exception:
+        LOG.exception("Could not start engine %s", args.name)
+        return
 
 
 def parse():
