@@ -20,6 +20,7 @@ import datetime
 import logging
 import operator
 import os
+import tempfile
 
 from concurrent import futures as cf
 import croniter
@@ -59,6 +60,9 @@ class Engine(object):
         self.running_repairs = []
         self.futures = []
         self.run_queue = collections.deque()
+        self.engine_enabled = True
+        # Well known file where all engines are stored.
+        self._engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -79,17 +83,17 @@ class Engine(object):
 
     def start_scheduler(self):
         serializer = self.executor.submit(self.start_serializer)
-        self.futures.append(serializer)
+        #self.futures.append(serializer)
 
         # Start react scripts.
-        self.futures.append(self.start_react_scripts())
+        self.futures.extend(self.start_react_scripts())
 
         scheduler = self.executor.submit(self.schedule)
-        self.futures.append(scheduler)
+#        self.futures.append(scheduler)
 
         #watchdog
-        watchdog_thread = self.start_watchdog(self.cfg_dir)
-        watchdog_thread.join()
+        watchdog_thread = self.start_watchdog([self.cfg_dir, utils.get_filename_and_path(self._engine_cfg)[0]])
+        [thread.join() for thread in watchdog_thread]
 
     def schedule(self):
         while True:
@@ -153,7 +157,7 @@ class Engine(object):
                 sched = schedules[key]
                 now = datetime.datetime.now()
                 cron = croniter.croniter(sched, now)
-                while True:
+                while True and self.engine_enabled:
                     next_call = cron.get_next(datetime.datetime)
                     if next_call > next_iteration:
                         break
@@ -172,15 +176,32 @@ class Engine(object):
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
-        self.futures.append(self.start_react_scripts())
+        self.futures.extend(self.start_react_scripts())
 
-    def start_watchdog(self, dir_to_watch):
+    def shutdown_engine(self):
+        LOG.info('Shutting down engine %s', self.name)
+        self.engine_enabled = False
+        print self.futures
+        print dir(self.executor)
+        print dir(self.executor._threads.pop())
+        for future in self.futures:
+            future.cancel()
+        try:
+            raise exceptions.EngineStoppedException('Stopping engine %s at %s' %
+                                                    (self.name, utils.wallclock()))
+        except exceptions.EngineStoppedException:
+            pass
+
+    def start_watchdog(self, dir_list_to_watch):
         event_fn = {self.audit_cfg: self.audit_modified,
-                    self.repair_cfg: self.repair_modified}
+                    self.repair_cfg: self.repair_modified,
+                    self._engine_cfg: self.shutdown_engine}
         LOG.debug(event_fn)
-        return utils.watch_dir_for_change(dir_to_watch, event_fn)
+        return [utils.watch_dir_for_change(cfg_dir, event_fn)
+                for cfg_dir in dir_list_to_watch]
 
     def setup_audit(self, execution_time, audit_list):
+        print 'length of futures is ', len(self.futures), self.futures
         try:
             pause.until(execution_time)
             LOG.info("Time: %s, Starting %s", execution_time, audit_list)
@@ -193,11 +214,18 @@ class Engine(object):
                                               audit_name=audit_name,
                                               **audit_cfg)
                 audit_futures.append(future)
-            if audit_futures:
-                self.futures.append(audit_futures)
         except Exception:
             LOG.exception("Could not run all audits in %s at %s",
                           execution_time, audit_list)
+
+    def foo(self, future):
+#        print future, self.futures, future in self.futures
+#        if future.done():
+#            try:
+#                self.futures.remove(future)
+#            except ValueError:
+#                LOG.exception('Could not remove future %s', future)
+        print 'Future ', future, ' finished'
 
     def start_react_scripts(self):
         scripts = utils.load_yaml(self.repair_cfg)
@@ -206,6 +234,7 @@ class Engine(object):
             for script in scripts:
                 if script not in self.running_repairs:
                     future = self.setup_react(script, **scripts[script])
+                    future.add_done_callback(self.foo)
                     if future is not None:
                         futures.append(future)
         LOG.info('Running repair scripts %s', ', '.join(self.running_repairs))
@@ -237,6 +266,10 @@ class Engine(object):
             imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
             return future
+        except exceptions.EngineStoppedException:
+            LOG.info('Stopping react script %s because engine %s was stopped',
+                     script, self.name)
+            print 'whaaaaat'
         except Exception:
             LOG.exception("Could not setup %s", script)
             return None

@@ -17,7 +17,7 @@
 
 class EntropyException(Exception):
     """Base class for exceptions emitted from entropy."""
-    def __init(self, message):
+    def __init__(self, message):
         super(EntropyException, self).__init__(message)
 
 
@@ -25,3 +25,8 @@ class TimeoutException(EntropyException):
     """Exceptions because of timeouts, eg. when the job queue has been empty
     really long.
     """
+
+class EngineStoppedException(EntropyException):
+    """Exception raised when engine is shutdown """
+    def __init__(self, message):
+        super(EngineStoppedException, self).__init__(message)
