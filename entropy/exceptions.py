@@ -30,6 +30,6 @@ class TimeoutException(EntropyException):
 
 
 class EngineStoppedException(EntropyException):
-    """Exception raised when engine is shutdown."""
+    """Exception raised when engine is shutdown """
     def __init__(self, message):
         super(EngineStoppedException, self).__init__(message)
