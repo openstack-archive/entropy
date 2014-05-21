@@ -18,6 +18,7 @@ import datetime
 import logging
 import os
 import sys
+import time
 
 import six
 from watchdog.events import FileSystemEventHandler
@@ -117,6 +118,38 @@ def check_duplicate(name, cfg_file):
     return scripts and name in six.iterkeys(scripts)
 
 
+def check_exists_and_enabled(name, cfg_file):
+    scripts = load_yaml(cfg_file)
+    return scripts and name in scripts and scripts[name]['enabled']
+
+
+def check_exists_and_disabled(name, cfg_file):
+    scripts = load_yaml(cfg_file)
+    return scripts and name in scripts and not scripts[name]['enabled']
+
+
+def purge_disabled(cfg_file):
+    items = load_yaml(cfg_file)
+    final_items = {}
+    if not items:
+        return
+    for item in items:
+        if items[item]['enabled']:
+            final_items[item] = items[item]
+    write_yaml(final_items, cfg_file, append=False)
+
+
+def disable_engine(name, cfg_file):
+    engines = load_yaml(cfg_file)
+    if not engines:
+        raise Exception("No engines at all!")
+    if name not in engines:
+        raise Exception("No such engine!")
+    engines[name]['enabled'] = False
+    write_yaml(engines, cfg_file, append=False)
+    return engines[name]['pid']
+
+
 def reset_logger(log):
     if not log:
         return
@@ -129,18 +162,34 @@ def reset_logger(log):
     log.addHandler(logging.NullHandler())
 
 
-def write_yaml(data, filename):
-    with open(filename, "a") as cfg_file:
+def write_yaml(data, filename, append=True):
+    mode = "a" if append else "w"
+    with open(filename, mode) as cfg_file:
         cfg_file.write(yaml.safe_dump(data,
                                       default_flow_style=False,
                                       canonical=False))
 
 
-def wallclock():
+def create_files(file_list=[]):
+    if not file_list:
+        return
+    for filename in file_list:
+        try:
+            with open(filename):
+                pass
+        except IOError:
+            with open(filename, 'a'):
+                pass
+
+
+def wallclock(type=None):
     # NOTE(harlowja): made into a function so that this can be easily mocked
     # out if we want to alter time related functionality (for testing
     # purposes).
-    return datetime.datetime()
+    if not type:
+        return time.time()
+    if type == "datetime":
+        return datetime.datetime()
 
 
 # From taskflow:
@@ -224,3 +273,5 @@ class StopWatch(object):
         self._stopped_at = wallclock()
         self._state = self._STOPPED
         return self
+
+

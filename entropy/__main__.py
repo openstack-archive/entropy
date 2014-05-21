@@ -20,6 +20,8 @@ import logging
 import os
 import tempfile
 
+import psutil
+
 from engine import Engine
 from entropy import utils
 
@@ -93,25 +95,45 @@ def start_engine(args):
     if not (args.name and args.engine_cfg):
         LOG.error('Need name and engine cfg')
         return
-    cfg_data = dict(utils.load_yaml(args.engine_cfg))[args.name]
+    if utils.check_exists_and_enabled(args.name, engine_cfg):
+        LOG.error("And engine of the same name %s is already "
+                  "registered and running", args.name)
+        return
+    if args.purge:
+        utils.purge_disabled(engine_cfg)
+    if utils.check_exists_and_disabled(args.name, engine_cfg):
+        LOG.error("And engine of the same name %s is already "
+                  "registered, but disabled. Run with purge?", args.name)
+        return
+
+    try:
+        cfg_data = dict(utils.load_yaml(args.engine_cfg))[args.name]
+    except Exception:
+        LOG.exception("Could not start engine %s", args.name)
+        return
+
     cfg = {
         args.name: {
             'cfg': os.path.join(os.getcwd(), args.engine_cfg),
-            'pid': os.getpid()
+            'pid': os.getpid(),
+            'enabled': True
         }
     }
+
     utils.write_yaml(cfg, engine_cfg)
     # create cfg files
-    for filename in ['audit_cfg', 'repair_cfg']:
-        try:
-            with open(cfg_data[filename]):
-                pass
-        except IOError:
-            with open(cfg_data[filename], 'a'):
-                pass
+    utils.create_files([cfg_data['audit_cfg'], cfg_data['repair_cfg']])
     LOG.info('Added %s to engine cfg', args.name)
     entropy_engine = Engine(args.name, **cfg_data)
     entropy_engine.run()
+
+
+def stop_engine(args):
+    print "Stoppign engine", args.name
+    # Grab engine config file, set our engine to disabled
+    pid = utils.disable_engine(args.name, engine_cfg)
+    p = psutil.Process(pid)
+    p.terminate()
 
 
 def parse():
@@ -143,12 +165,20 @@ def parse():
                                         help='Engine')
     register_repair_parser.set_defaults(func=register_repair)
 
-    scheduler_parser = subparsers.add_parser('start-engine',
-                                             help='Start an entropy engine')
-    scheduler_parser.add_argument('-n', dest='name', help='Name')
-    scheduler_parser.add_argument('-c', dest='engine_cfg',
-                                  help='path to engine cfg')
-    scheduler_parser.set_defaults(func=start_engine)
+    engine_parser = subparsers.add_parser('start-engine',
+                                          help='Start an entropy engine')
+    engine_parser.add_argument('-n', dest='name', help='Name')
+    engine_parser.add_argument('-p', dest='purge', action='store_true',
+                               default=False, help='Purge engine list')
+    engine_parser.add_argument('-c', dest='engine_cfg',
+                               help='path to engine cfg')
+    engine_parser.set_defaults(func=start_engine)
+
+    stop_engine_parser = subparsers.add_parser('stop-engine',
+                                               help='Stop an entropy engine')
+    stop_engine_parser.add_argument('-n', dest='name',
+                                    help="Name of engine to stop")
+    stop_engine_parser.set_defaults(func=stop_engine)
 
     args = parser.parse_args()
     args.func(args)
