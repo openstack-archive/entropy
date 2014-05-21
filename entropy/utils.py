@@ -106,9 +106,45 @@ class WatchdogHandler(FileSystemEventHandler):
 def watch_dir_for_change(dir_to_watch, event_fn):
     event_handler = WatchdogHandler(event_fn)
     observer = Observer()
-    observer.schedule(event_handler, path=dir_to_watch, recursive=True)
+    observer.schedule(event_handler, path=dir_to_watch)
     observer.start()
     return observer
+
+
+def check_exists_and_enabled(name, cfg_file):
+    engines = load_yaml(cfg_file)
+    return engines and name in engines and engines[name]['enabled']
+
+
+def check_exists_and_disabled(name, cfg_file):
+    engines = load_yaml(cfg_file)
+    return engines and name in engines and not engines[name]['enabled']
+
+
+def purge_disabled(cfg_file):
+    engines = load_yaml(cfg_file)
+    final_engines = {}
+    if not engines:
+        return
+    for engine in engines:
+        if engines[engine]['enabled']:
+            final_engines[engine] = engines[engine]
+    if final_engines:
+        write_yaml(final_engines, cfg_file, append=False)
+    else:
+        with open(cfg_file, 'w'):
+            pass
+
+
+def disable_engine(name, cfg_file):
+    engines = load_yaml(cfg_file)
+    if not engines:
+        raise Exception("No engines at all!")
+    if name not in engines:
+        raise Exception("No such engine!")
+    engines[name]['enabled'] = False
+    write_yaml(engines, cfg_file, append=False)
+    return engines[name]['pid']
 
 
 def reset_logger(log):
@@ -123,8 +159,9 @@ def reset_logger(log):
     log.addHandler(logging.NullHandler())
 
 
-def write_yaml(data, filename):
-    with open(filename, "a") as cfg_file:
+def write_yaml(data, filename, append=True):
+    mode = "a" if append else "w"
+    with open(filename, mode) as cfg_file:
         cfg_file.write(yaml.safe_dump(data,
                                       default_flow_style=False,
                                       canonical=False))
