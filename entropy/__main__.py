@@ -97,7 +97,8 @@ def start_engine(args):
     cfg = {
         args.name: {
             'cfg': os.path.join(os.getcwd(), args.engine_cfg),
-            'pid': os.getpid()
+            'pid': os.getpid(),
+            'backend': cfg_data['backend']
         }
     }
     utils.write_yaml(cfg, engine_cfg)
