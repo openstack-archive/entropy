@@ -82,7 +82,7 @@ class Engine(object):
         self.futures.append(serializer)
 
         # Start react scripts.
-        self.futures.append(self.start_react_scripts())
+        self.futures.extend(self.start_react_scripts())
 
         scheduler = self.executor.submit(self.schedule)
         self.futures.append(scheduler)
@@ -177,7 +177,7 @@ class Engine(object):
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
-        self.futures.append(self.start_react_scripts())
+        self.futures.extend(self.start_react_scripts())
 
     def start_watchdog(self, dir_to_watch):
         event_fn = {self.audit_cfg: self.audit_modified,
@@ -199,7 +199,7 @@ class Engine(object):
                                               **audit_cfg)
                 audit_futures.append(future)
             if audit_futures:
-                self.futures.append(audit_futures)
+                self.futures.extend(audit_futures)
         except Exception:
             LOG.exception("Could not run all audits in %s at %s",
                           audit_list, execution_time)
