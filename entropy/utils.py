@@ -223,3 +223,15 @@ class StopWatch(object):
         self._stopped_at = wallclock()
         self._state = self._STOPPED
         return self
+
+
+def create_files(list_of_files):
+    if not list_of_files:
+        return
+    for filename in list_of_files:
+        try:
+            with open(filename):
+                pass
+        except IOError:
+            with open(filename, 'a'):
+                pass
