@@ -63,4 +63,6 @@ arch/
 docs/_build
 entropy/test
 entropy/examples/logs
-entropy/examples/cfg/
+entropy/examples/cfg/audit.cfg
+entropy/examples/cfg/repair.cfg
+entropy/examples/cfg/test1.cfg
