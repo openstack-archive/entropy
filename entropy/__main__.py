@@ -102,7 +102,10 @@ def start_engine(args):
         }
     }
     utils.write_yaml(cfg, engine_cfg)
+
+    # setup backend
     # create cfg files
+
     for filename in ['audit_cfg', 'repair_cfg']:
         try:
             with open(cfg_data[filename]):
