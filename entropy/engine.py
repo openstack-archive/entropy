@@ -59,6 +59,8 @@ class Engine(object):
         self.running_repairs = []
         self.futures = []
         self.run_queue = collections.deque()
+        # Private variables
+        self._event_fn = {self.repair_cfg: self.repair_modified}
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -171,19 +173,13 @@ class Engine(object):
             LOG.exception("Could not run serializer for %s at %s",
                           self.name, current_time)
 
-    # TODO(praneshp): For now, only addition of scripts. Handle deletion later
-    def audit_modified(self):
-        LOG.info('Audit configuration changed')
-
     def repair_modified(self):
         LOG.info('Repair configuration changed')
         self.futures.append(self.start_react_scripts())
 
     def start_watchdog(self, dir_to_watch):
-        event_fn = {self.audit_cfg: self.audit_modified,
-                    self.repair_cfg: self.repair_modified}
-        LOG.debug(event_fn)
-        return utils.watch_dir_for_change(dir_to_watch, event_fn)
+        LOG.debug('Watchdog mapping is: ', self._event_fn)
+        return utils.watch_dir_for_change(dir_to_watch, self._event_fn)
 
     def setup_audit(self, execution_time, audit_list):
         try:
