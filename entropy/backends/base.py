@@ -11,15 +11,23 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import os
 
-from entropy.backends imort base
+import abc
 
-class FileBackend(base.Backend):
-    """A directory based backend."""
+
+@six.add_metaclass(abc.ABCMeta)
+class Backend(object):
+    """Base class for persistence backends."""
+
     def __init__(self, conf):
-        super(FileBackend, self).__init(conf)
-        self.path = os.path.abspath(conf['path'])
+        if not conf:
+            conf = {}
+        if not isinstance(conf, dict):
+            raise TypeError("Configuration dictionary expected not: %s"
+                            % type(conf))
+        self._conf = conf
 
-    def setup(self):
+    @abc.abstractmethod
+    def teardown(self):
+        """Closes any resources this backend has open."""
         pass
