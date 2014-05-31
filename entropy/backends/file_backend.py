@@ -11,13 +11,21 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import os
-
 from entropy.backends import base
+from entropy import utils
 
 
 class FileBackend(base.Backend):
     """A directory based backend."""
     def __init__(self, conf):
-        super(FileBackend, self).__init(conf)
-        self.path = os.path.abspath(conf['path'])
+        super(FileBackend, self).__init__(conf)
+        self.setup()
+
+    def setup(self):
+        utils.create_files([self._conf['audit_cfg'], self._conf['repair_cfg']])
+
+    def open(self):
+        pass
+
+    def close(self):
+        pass
