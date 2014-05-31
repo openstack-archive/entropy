@@ -27,6 +27,7 @@ from kombu import Exchange
 from kombu import Queue
 import pause
 import six
+from stevedore import driver
 
 from entropy import exceptions
 from entropy import utils
@@ -40,6 +41,7 @@ class Engine(object):
         Engine.set_logger(**cfg_data)
         # constants
         # TODO(praneshp): Hardcode for now, could/should be cmdline input
+        self._engine_cfg_data = cfg_data
         self.max_workers = 8
         self.audit_type = 'audit'
         self.repair_type = 'repair'
@@ -52,6 +54,8 @@ class Engine(object):
         self.serializer_schedule = cfg_data['serializer_schedule']
         self.engine_timeout = cfg_data['engine_timeout']
         # TODO(praneshp): Assuming cfg files are in 1 dir. Change later
+        self._backend = cfg_data['backend']
+        self._backend_driver = self.get_backend()
         self.cfg_dir = os.path.dirname(self.audit_cfg)
         self.log_file = cfg_data['log_file']
         self.executor = cf.ThreadPoolExecutor(max_workers=self.max_workers)
@@ -72,6 +76,15 @@ class Engine(object):
         log_to_file.setFormatter(log_format)
         LOG.addHandler(log_to_file)
         LOG.propagate = False
+
+    def get_backend(self):
+        backend = driver.DriverManager(
+            namespace='entropy.backend',
+            name=self._backend,
+            invoke_on_load=True,
+            invoke_args=(self._engine_cfg_data,),
+        )
+        return backend.driver
 
     def run(self):
         LOG.info('Starting Scheduler for %s', self.name)
@@ -189,7 +202,8 @@ class Engine(object):
         try:
             pause.until(execution_time)
             LOG.info("Time: %s, Starting %s", execution_time, audit_list)
-            audits = utils.load_yaml(self.audit_cfg)
+            audits = self._backend_driver.get_audits()
+#            audits = utils.load_yaml(self.audit_cfg)
             audit_futures = []
             for audit in audit_list:
                 audit_name = audit['name']
