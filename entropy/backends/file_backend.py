@@ -36,8 +36,18 @@ class FileBackend(base.Backend):
         audits = utils.load_yaml(self._audit_cfg)
         return audits
 
+    def get_repairs(self):
+        repairs = utils.load_yaml(self._repair_cfg)
+        return repairs
+
     def audit_cfg_from_name(self, name):
         audits = self.get_audits()
         conf = audits[name]['cfg']
         audit_cfg = dict(utils.load_yaml(conf))
         return audit_cfg
+
+    def repair_cfg_from_name(self, name):
+        repairs = self.get_repairs()
+        conf = repairs[name]['cfg']
+        repair_cfg = dict(utils.load_yaml(conf))
+        return repair_cfg
