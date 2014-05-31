@@ -20,6 +20,8 @@ import logging
 import os
 import tempfile
 
+from stevedore import driver
+
 from engine import Engine
 from entropy import utils
 
@@ -102,8 +104,6 @@ def start_engine(args):
         }
     }
     utils.write_yaml(cfg, engine_cfg)
-    # create cfg files
-    utils.create_files([cfg_data['audit_cfg'], cfg_data['repair_cfg']])
     LOG.info('Added %s to engine cfg', args.name)
     entropy_engine = Engine(args.name, **cfg_data)
     entropy_engine.run()
