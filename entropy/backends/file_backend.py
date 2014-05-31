@@ -19,13 +19,25 @@ class FileBackend(base.Backend):
     """A directory based backend."""
     def __init__(self, conf):
         super(FileBackend, self).__init__(conf)
+        self._audit_cfg = conf['audit_cfg']
+        self._repair_cfg = conf['repair_cfg']
         self.setup()
 
     def setup(self):
-        utils.create_files([self._conf['audit_cfg'], self._conf['repair_cfg']])
+        utils.create_files([self._audit_cfg, self._repair_cfg])
 
     def open(self):
         pass
 
     def close(self):
         pass
+
+    def get_audits(self):
+        audits = utils.load_yaml(self._audit_cfg)
+        return audits
+
+    def audit_cfg_from_name(self, name):
+        audits = self.get_audits()
+        conf = audits[name]['cfg']
+        audit_cfg = dict(utils.load_yaml(conf))
+        return audit_cfg
