@@ -155,16 +155,15 @@ class Engine(object):
 
     def run_serializer(self, next_iteration, current_time):
         LOG.info("Running serializer for %s at %s", self.name, current_time)
-        audits = utils.load_yaml(self.audit_cfg)
+        audits = self._backend_driver.get_audits()
         schedules = {}
         if not audits:
             return
         try:
             for audit_name in audits:
-                conf = audits[audit_name]['cfg']
-                audit_config = dict(utils.load_yaml(conf))
-                schedules[audit_name] = audit_config['schedule']
-
+                audit_cfg = self._backend_driver.audit_cfg_from_name(
+                    audit_name)
+                schedules[audit_name] = audit_cfg['schedule']
             new_additions = []
 
             for key in six.iterkeys(schedules):
@@ -203,11 +202,11 @@ class Engine(object):
             pause.until(execution_time)
             LOG.info("Time: %s, Starting %s", execution_time, audit_list)
             audits = self._backend_driver.get_audits()
-#            audits = utils.load_yaml(self.audit_cfg)
             audit_futures = []
             for audit in audit_list:
                 audit_name = audit['name']
-                audit_cfg = utils.load_yaml(audits[audit_name]['cfg'])
+                audit_cfg = self._backend_driver.audit_cfg_from_name(
+                    audit_name)
                 future = self.executor.submit(self.run_audit,
                                               audit_name=audit_name,
                                               **audit_cfg)
