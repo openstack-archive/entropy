@@ -1,0 +1,12 @@
+{
+    "name" : "taskflow",
+    "script": "/home/praneshp/code/entropy/entropy/examples/repair/taskflow_example",
+    "hostname" : "localhost",
+    "username" : "praneshp",
+    "ssh-key" : "id_rsa",
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "guest",
+    "mq_password": "guest",
+    "routing_key": "demo",
+}
