@@ -51,3 +51,12 @@ class FileBackend(base.Backend):
         conf = repairs[name]['cfg']
         repair_cfg = dict(utils.load_yaml(conf))
         return repair_cfg
+
+    def get_script_cfg(self, script_type):
+        """Return the audit/repair cfg file."""
+        if script_type == self._audit:
+            return self._audit_cfg
+        elif script_type == self._repair:
+            return self._repair_cfg
+        raise TypeError('Script type must be one of: ', [self._audit_cfg,
+                                                         self._repair_cfg])
