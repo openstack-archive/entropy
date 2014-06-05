@@ -111,11 +111,6 @@ def watch_dir_for_change(dir_to_watch, event_fn):
     return observer
 
 
-def check_duplicate(name, cfg_file):
-    scripts = load_yaml(cfg_file)
-    return scripts and name in scripts
-
-
 def reset_logger(log):
     if not log:
         return

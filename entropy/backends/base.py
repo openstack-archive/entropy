@@ -28,6 +28,8 @@ class Backend(object):
             raise TypeError("Configuration dictionary expected not: %s"
                             % type(conf))
         self._conf = conf
+        self._audit = 'audit'
+        self._repair = 'repair'
 
     @abc.abstractmethod
     def open(self):
