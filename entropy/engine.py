@@ -214,12 +214,12 @@ class Engine(object):
                           audit_list, execution_time)
 
     def start_react_scripts(self):
-        scripts = utils.load_yaml(self.repair_cfg)
+        repairs = self._backend_driver.get_repairs()
         futures = []
-        if scripts:
-            for script in scripts:
+        if repairs:
+            for script in repairs:
                 if script not in self.running_repairs:
-                    future = self.setup_react(script, **scripts[script])
+                    future = self.setup_react(script, **repairs[script])
                     if future is not None:
                         futures.append(future)
         LOG.info('Running repair scripts %s', ', '.join(self.running_repairs))
@@ -229,7 +229,7 @@ class Engine(object):
         LOG.info('Setting up reactor %s', script)
 
         # Pick out relevant info
-        data = dict(utils.load_yaml(script_args['cfg']))
+        data = self._backend_driver.repair_cfg_from_name(script)
         react_script = data['script']
         search_path, reactor = utils.get_filename_and_path(react_script)
         available_modules = imp.find_module(reactor, [search_path])
