@@ -55,7 +55,8 @@ class Engine(object):
         self.engine_timeout = cfg_data['engine_timeout']
         # TODO(praneshp): Assuming cfg files are in 1 dir. Change later
         self._backend = cfg_data['backend']
-        self._backend_driver = self.get_backend()
+        self._backend_driver = self.get_backend(self._backend,
+                                                self._engine_cfg_data)
         self.cfg_dir = os.path.dirname(self.audit_cfg)
         self.log_file = cfg_data['log_file']
         self.executor = cf.ThreadPoolExecutor(max_workers=self.max_workers)
@@ -79,12 +80,13 @@ class Engine(object):
         LOG.addHandler(log_to_file)
         LOG.propagate = False
 
-    def get_backend(self):
+    @staticmethod
+    def get_backend(backend, cfg_data):
         backend = driver.DriverManager(
             namespace='entropy.backend',
-            name=self._backend,
+            name=backend,
             invoke_on_load=True,
-            invoke_args=(self._engine_cfg_data,),
+            invoke_args=(cfg_data,),
         )
         return backend.driver
 
