@@ -30,31 +30,38 @@ LOG = logging.getLogger(__name__)
 engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
 
 
-def get_cfg_file(engine, script_type):
-    cfg_key = {'audit': 'audit_cfg', 'repair': 'repair_cfg'}
+def _get_script_metadata(backend, script_type):
+    """This function should return either a table or a file based on what
+       backend you use.
+    """
+    try:
+        return backend.get_script_cfg(script_type)
+    except TypeError:
+        LOG.exception('Invalid script type')
+
+
+def _get_backend_from_engine(engine):
     try:
         engine_config = dict(utils.load_yaml(engine_cfg))[engine]
         this_engine_cfg_file = engine_config['cfg']
         this_engine_cfg = dict(utils.load_yaml(this_engine_cfg_file))
-        return this_engine_cfg[engine][cfg_key[script_type]]
+        return Engine.get_backend(this_engine_cfg[engine]['backend'],
+                                  this_engine_cfg[engine])
     except KeyError:
-        LOG.exception('Could not find engine/react script')
-        return None
+        LOG.exception("Could not find engine's cfg script")
 
 
 def add_to_list(engine, script_type, script_name, **script_args):
-    cfg_file = get_cfg_file(engine, script_type)
-    if cfg_file is None:
-        LOG.error('Could not find cfg file')
-        return
-    if utils.check_duplicate(script_name, cfg_file):
+    backend = _get_backend_from_engine(engine)
+    script_metadata = _get_script_metadata(backend, script_type)
+    if utils.check_duplicate(script_name, script_metadata):
         LOG.error('%s already exists, not registering', script_type)
         return
     try:
         data = {
             script_name: script_args
         }
-        utils.write_yaml(data, cfg_file)
+        utils.write_yaml(data, script_metadata)
         return True
     except Exception:
         LOG.exception("Could not register %s script %s", script_type,
@@ -83,7 +90,7 @@ def register_repair(args):
         LOG.error('Need path to script, json and engine name')
         return
 
-    # Write to audit file
+    # Write to repair file
     repair_cfg_args = {'cfg': os.path.join(os.getcwd(), args.conf)}
     if add_to_list(args.engine, 'repair', args.name, **repair_cfg_args):
         LOG.info('Registered repair script %s', args.name)
