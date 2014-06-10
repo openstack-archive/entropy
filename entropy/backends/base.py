@@ -67,3 +67,7 @@ class Backend(object):
     @abc.abstractmethod
     def add_script(self, script_type, data):
         pass
+
+    @abc.abstractmethod
+    def remove_script(self, script_type, script_name):
+        pass
