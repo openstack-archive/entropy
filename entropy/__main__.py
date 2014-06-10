@@ -60,6 +60,15 @@ def _add_to_list(engine, script_type, script_name, **script_args):
         return False
 
 
+def _remove_from_list(engine, script_type, script_name):
+    backend = _get_backend_from_engine(engine)
+    try:
+        backend.remove_script(script_type, script_name)
+    except Exception:
+        LOG.exception("Could not remove %s script %s",
+                      script_type, script_name)
+
+
 def register_audit(args):
     LOG.info('Registering audit script %s', args.name)
 
@@ -72,6 +81,14 @@ def register_audit(args):
     audit_cfg_args = {'cfg': os.path.join(os.getcwd(), args.conf)}
     if _add_to_list(args.engine, 'audit', args.name, **audit_cfg_args):
         LOG.info('Registered audit %s', args.name)
+
+
+def unregister_audit(args):
+    LOG.info('Unregistering audit script %s', args.name)
+    if not args.name and args.engine:
+        LOG.error('Need a audit name and engine to unregister')
+        return
+    _remove_from_list(args.engine, 'audit', args.name)
 
 
 def register_repair(args):
@@ -151,6 +168,14 @@ def parse():
                                        help='Engine')
     register_audit_parser.set_defaults(func=register_audit)
 
+    unregister_audit_parser =\
+        subparsers.add_parser('unregister-audit',
+                              help='Unregister a repair script')
+    unregister_audit_parser.add_argument('-n', dest='name', action='store',
+                                         help='Repair script name')
+    unregister_audit_parser.add_argument('-e', dest='engine', action='store',
+                                         help='Engine')
+    unregister_audit_parser.set_defaults(func=unregister_audit)
     register_repair_parser =\
         subparsers.add_parser('register-repair',
                               help='Register a repair script')
