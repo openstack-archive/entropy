@@ -162,12 +162,14 @@ def parse():
                                         help='Engine')
     register_repair_parser.set_defaults(func=register_repair)
 
-    scheduler_parser = subparsers.add_parser('start-engine',
+    start_engine_parser = subparsers.add_parser('start-engine',
                                              help='Start an entropy engine')
-    scheduler_parser.add_argument('-n', dest='name', help='Name')
-    scheduler_parser.add_argument('-c', dest='engine_cfg',
-                                  help='path to engine cfg')
-    scheduler_parser.set_defaults(func=start_engine)
+    start_engine_parser.add_argument('-n', dest='name', help='Name')
+    start_engine_parser.add_argument('-c', dest='engine_cfg',
+                                     help='path to engine cfg')
+    start_engine_parser.add_argument('-p', dest='purge',
+                                     help='Purge disabled engines')
+    start_engine_parser.set_defaults(func=start_engine)
 
     stop_engine_parser = subparsers.add_parser('stop-engine',
                                                help='Stop an entropy engine')
