@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
 
 
-def get_cfg_file(engine, script_type):
+def get_script_metadata(engine, script_type):
     """This function should return either a table or a file based on what
        backend you use. So read the backend from this_engine_cfg, and then
        return either a table or a file.
@@ -48,18 +48,18 @@ def get_cfg_file(engine, script_type):
 
 
 def add_to_list(engine, script_type, script_name, **script_args):
-    cfg_file = get_cfg_file(engine, script_type)
-    if cfg_file is None:
+    script_metadata = get_script_metadata(engine, script_type)
+    if script_metadata is None:
         LOG.error('Could not find cfg file')
         return
-    if utils.check_duplicate(script_name, cfg_file):
+    if utils.check_duplicate(script_name, script_metadata):
         LOG.error('%s already exists, not registering', script_type)
         return
     try:
         data = {
             script_name: script_args
         }
-        utils.write_yaml(data, cfg_file)
+        utils.write_yaml(data, script_metadata)
         return True
     except Exception:
         LOG.exception("Could not register %s script %s", script_type,
