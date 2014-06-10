@@ -18,7 +18,9 @@
 import argparse
 import logging
 import os
+import psutil
 import tempfile
+import time
 
 from engine import Engine
 from entropy import utils
@@ -119,6 +121,18 @@ def start_engine(args):
         return
 
 
+def stop_engine(args):
+    LOG.info("Stopping engine %s", args.name)
+    # Grab engine config file, set our engine to disabled
+    pid = utils.disable_engine(args.name, engine_cfg)
+    try:
+        p = psutil.Process(pid)
+        time.sleep(5)
+        p.terminate()
+    except psutil.NoSuchProcess:
+        LOG.exception("No running engine %s", args.name)
+
+
 def parse():
     parser = argparse.ArgumentParser(description='entropy')
     subparsers = parser.add_subparsers(dest='command',
@@ -154,6 +168,12 @@ def parse():
     scheduler_parser.add_argument('-c', dest='engine_cfg',
                                   help='path to engine cfg')
     scheduler_parser.set_defaults(func=start_engine)
+
+    stop_engine_parser = subparsers.add_parser('stop-engine',
+                                               help='Stop an entropy engine')
+    stop_engine_parser.add_argument('-n', dest='name',
+                                    help="Name of engine to stop")
+    stop_engine_parser.set_defaults(func=stop_engine)
 
     args = parser.parse_args()
     args.func(args)
