@@ -69,3 +69,21 @@ class FileBackend(base.Backend):
     def add_script(self, script_type, data):
         script_metadata = self.get_script_cfg(script_type)
         utils.write_yaml(data, script_metadata)
+
+    @staticmethod
+    def remove_script_from_cfg(metadata, name):
+        scripts = utils.load_yaml(metadata)
+        try:
+            scripts.pop(name)
+        except KeyError:
+            raise
+        return scripts
+
+    def remove_script(self, script_type, script_name):
+        try:
+            script_metadata = self.get_script_cfg(script_type)
+            final_data = FileBackend.remove_script_from_cfg(script_metadata,
+                                                            script_name)
+            utils.write_yaml(final_data, script_metadata, append=False)
+        except Exception:
+            raise
