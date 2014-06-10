@@ -9,3 +9,4 @@ stevedore>0.10
 watchdog>=0.7.1
 futures>=2.1.6
 six>=1.6.1
+psutil>=2.1.1
