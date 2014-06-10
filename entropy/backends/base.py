@@ -39,3 +39,31 @@ class Backend(object):
     def close(self):
         """Closes any resources this backend has open."""
         pass
+
+    @abc.abstractmethod
+    def get_audits(self):
+        pass
+
+    @abc.abstractmethod
+    def get_repairs(self):
+        pass
+
+    @abc.abstractmethod
+    def audit_cfg_from_name(self, name):
+        pass
+
+    @abc.abstractmethod
+    def repair_cfg_from_name(self, name):
+        pass
+
+    @abc.abstractmethod
+    def get_script_cfg(self, script_type):
+        pass
+
+    @abc.abstractmethod
+    def check_script_exists(self, script_type, script_name):
+        pass
+
+    @abc.abstractmethod
+    def add_script(self, script_type, data):
+        pass
