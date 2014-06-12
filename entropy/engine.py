@@ -251,6 +251,7 @@ class Engine(object):
                 self.known_queues.append(message_queue)
             self._known_routing_keys.add(data['routing_key'])
             kwargs = data
+            kwargs['name'] = script
             kwargs['conf'] = script_args['cfg']
             kwargs['exchange'] = self.entropy_exchange
             kwargs['message_queue'] = message_queue
