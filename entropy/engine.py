@@ -177,13 +177,17 @@ class Engine(object):
             now = datetime.datetime.now()
             next_iteration = cron.get_next(datetime.datetime)
             if self._state == self.ENABLED:
-                self.run_serializer(next_iteration, now)
+                try:
+                    self.run_serializer(next_iteration, now)
+                except exceptions.SerializerException:
+                    LOG.exception("Could not run serializer")
 
     def run_serializer(self, next_iteration, current_time):
         LOG.info("Running serializer for %s at %s", self.name, current_time)
         audits = self._backend_driver.get_audits()
         schedules = {}
         if not audits:
+            LOG.info('No audits to run, returning')
             return
         try:
             for audit_name in audits:
@@ -211,8 +215,9 @@ class Engine(object):
             LOG.info("Run queue till %s is %s", next_iteration, self.run_queue)
             LOG.info("Repair scripts at %s: %s", next_iteration, self._repairs)
         except Exception:
-            LOG.exception("Could not run serializer for %s at %s",
-                          self.name, current_time)
+            raise exceptions.SerializerException(
+                "Could not run serializer for %s at %s" %
+                (self.name, current_time))
 
     def engine_disabled(self):
         engine_config = dict(utils.load_yaml(self.engine_cfg))[self.name]
