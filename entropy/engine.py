@@ -20,6 +20,7 @@ import datetime
 import logging
 import operator
 import os
+import tempfile
 
 from concurrent import futures as cf
 import croniter
@@ -73,6 +74,9 @@ class Engine(object):
         self._repairs = []
         self._known_routing_keys = set()
 
+        # Watchdog-related variables
+        self._watchdog_thread = None
+
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -112,8 +116,8 @@ class Engine(object):
         self.futures.append(scheduler)
 
         # watchdog
-        watchdog_thread = self.start_watchdog()
-        watchdog_thread.join()
+        self._watchdog_thread = self.start_watchdog()
+        self._watchdog_thread.join()
 
     def schedule(self):
         while True:
@@ -201,7 +205,8 @@ class Engine(object):
             self.stop_engine()
 
     def stop_engine(self):
-        pass
+        # Stop watchdog monitoring
+        self._watchdog_thread.stop()
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
