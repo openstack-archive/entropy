@@ -31,6 +31,7 @@ import six
 from stevedore import driver
 
 from entropy import exceptions
+from entropy import states
 from entropy import utils
 import imp
 LOG = logging.getLogger(__name__)
@@ -79,6 +80,9 @@ class Engine(object):
 
         # Serializer related variables
         self._serializer = None
+
+        # State related variables
+        self._state = states.ENABLED
 
         LOG.info('Created engine obj %s', self.name)
 
@@ -196,6 +200,7 @@ class Engine(object):
                     new_additions.append({'time': next_call, 'name': key})
 
             new_additions.sort(key=operator.itemgetter('time'))
+
             self.run_queue.extend(new_additions)
             LOG.info("Run queue till %s is %s", next_iteration, self.run_queue)
             LOG.info("Repair scripts at %s: %s", next_iteration, self._repairs)
@@ -209,7 +214,12 @@ class Engine(object):
             self.stop_engine()
 
     def stop_engine(self):
+        LOG.info("Stopping engine %s", self.name)
+        # Set state to stop, which will stop serializers
+        LOG.info("Setting %s to state: %s", self.name, states.DISABLED)
+        self._state = states.DISABLED
         # Stop watchdog monitoring
+        LOG.info("Stopping watchdog for %s", self.name)
         self._watchdog_thread.stop()
 
     def repair_modified(self):
