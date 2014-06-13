@@ -33,3 +33,9 @@ class EngineStoppedException(EntropyException):
     """Exception raised when engine is shutdown."""
     def __init__(self, message):
         super(EngineStoppedException, self).__init__(message)
+
+
+class SerializerException(EntropyException):
+    """Exception raised when the serializer fails."""
+    def __init__(self, message):
+        super(SerializerException, self).__init__(message)
