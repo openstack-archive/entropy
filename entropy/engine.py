@@ -80,6 +80,13 @@ class Engine(object):
         # Serializer related variables
         self._serializer = None
 
+        # Define states
+        # NOTE(praneshp): At this point, I don't think we need a separate
+        # file to define this. Maybe later.
+        self.ENABLED = 'enabled'
+        self.DISABLED = 'disabled'
+        self._state = self.ENABLED
+
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -195,6 +202,7 @@ class Engine(object):
                     new_additions.append({'time': next_call, 'name': key})
 
             new_additions.sort(key=operator.itemgetter('time'))
+
             self.run_queue.extend(new_additions)
             LOG.info("Run queue till %s is %s", next_iteration, self.run_queue)
             LOG.info("Repair scripts at %s: %s", next_iteration, self._repairs)
@@ -208,7 +216,12 @@ class Engine(object):
             self.stop_engine()
 
     def stop_engine(self):
+        LOG.info("Stopping engine %s", self.name)
+        # Set state to stop, which will stop serializers
+        LOG.info("Setting %s to state: %s", self.name, self.DISABLED)
+        self._state = self.DISABLED
         # Stop watchdog monitoring
+        LOG.info("Stopping watchdog for %s", self.name)
         self._watchdog_thread.stop()
 
     def repair_modified(self):
