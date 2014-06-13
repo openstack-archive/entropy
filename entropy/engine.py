@@ -175,7 +175,10 @@ class Engine(object):
             now = datetime.datetime.now()
             next_iteration = cron.get_next(datetime.datetime)
             if self._state == states.ENABLED:
-                self.run_serializer(next_iteration, now)
+                try:
+                    self.run_serializer(next_iteration, now)
+                except exceptions.SerializerException:
+                    LOG.exception("Could not run serializer")
 
     def run_serializer(self, next_iteration, current_time):
         LOG.info("Running serializer for %s at %s", self.name, current_time)
