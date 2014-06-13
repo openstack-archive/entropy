@@ -207,6 +207,9 @@ class Engine(object):
     def stop_engine(self):
         # Stop watchdog monitoring
         self._watchdog_thread.stop()
+        # Clear run queue
+        # Stop serializers
+        # Stop all repairs
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
