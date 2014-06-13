@@ -77,6 +77,9 @@ class Engine(object):
         # Watchdog-related variables
         self._watchdog_thread = None
 
+        # Serializer related variables
+        self._serializer = None
+
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -106,8 +109,9 @@ class Engine(object):
         self.start_scheduler()
 
     def start_scheduler(self):
-        serializer = self.executor.submit(self.start_serializer)
-        self.futures.append(serializer)
+        if not self._serializer:
+            self._serializer = self.executor.submit(self.start_serializer)
+            self.futures.append(self._serializer)
 
         # Start react scripts.
         self.futures.extend(self.start_react_scripts())
