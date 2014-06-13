@@ -41,8 +41,8 @@ class Engine(object):
         Engine.set_logger(**cfg_data)
         # constants
         # TODO(praneshp): Hardcode for now, could/should be cmdline input
-        self._engine_cfg_data = cfg_data
         self.max_workers = 8
+        self._engine_cfg_data = cfg_data
         self.audit_type = 'audit'
         self.repair_type = 'repair'
         self.entropy_exchange = Exchange('entropy_exchange', type='fanout')
@@ -69,6 +69,7 @@ class Engine(object):
         # Private variables to keep track of repair scripts.
         self._repairs = []
         self._known_routing_keys = set()
+
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -108,7 +109,7 @@ class Engine(object):
         self.futures.append(scheduler)
 
         # watchdog
-        watchdog_thread = self.start_watchdog(self.cfg_dir)
+        watchdog_thread = self.start_watchdog()
         watchdog_thread.join()
 
     def schedule(self):
@@ -195,9 +196,10 @@ class Engine(object):
         LOG.info('Repair configuration changed')
         self.futures.extend(self.start_react_scripts())
 
-    def start_watchdog(self, dir_to_watch):
+    def start_watchdog(self):
         LOG.debug('Watchdog mapping is: ', self._watchdog_event_fn)
-        return utils.watch_dir_for_change(dir_to_watch,
+        dirs_to_watch = [utils.get_filename_and_path(self.repair_cfg)[0]]
+        return utils.watch_dir_for_change(dirs_to_watch,
                                           self._watchdog_event_fn)
 
     def setup_audit(self, execution_time, audit_list):
