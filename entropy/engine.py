@@ -41,6 +41,8 @@ class Engine(object):
         utils.reset_logger(logging.getLogger())
         Engine.set_logger(**cfg_data)
         # constants
+        # Well known file where all engines are stored.
+        self.engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
         # TODO(praneshp): Hardcode for now, could/should be cmdline input
         self.max_workers = 8
         self._engine_cfg_data = cfg_data
@@ -66,7 +68,8 @@ class Engine(object):
         self.futures = []
         self.run_queue = collections.deque()
         # Private variables
-        self._watchdog_event_fn = {self.repair_cfg: self.repair_modified}
+        self._watchdog_event_fn = {self.repair_cfg: self.repair_modified,
+                                   self.engine_cfg: self.engine_disabled}
         # Private variables to keep track of repair scripts.
         self._repairs = []
         self._known_routing_keys = set()
@@ -193,13 +196,22 @@ class Engine(object):
             LOG.exception("Could not run serializer for %s at %s",
                           self.name, current_time)
 
+    def engine_disabled(self):
+        engine_config = dict(utils.load_yaml(self.engine_cfg))[self.name]
+        if not engine_config['enabled']:
+            self.stop_engine()
+
+    def stop_engine(self):
+        pass
+
     def repair_modified(self):
         LOG.info('Repair configuration changed')
         self.futures.extend(self.start_react_scripts())
 
     def start_watchdog(self):
         LOG.debug('Watchdog mapping is: ', self._watchdog_event_fn)
-        dirs_to_watch = [utils.get_filename_and_path(self.repair_cfg)[0]]
+        dirs_to_watch = [utils.get_filename_and_path(x)[0] for x in
+                         self.engine_cfg, self.repair_cfg]
         return utils.watch_dir_for_change(dirs_to_watch,
                                           self._watchdog_event_fn)
 
