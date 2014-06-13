@@ -103,10 +103,11 @@ class WatchdogHandler(FileSystemEventHandler):
             LOG.error('no associated function for %s', event.src_path)
 
 
-def watch_dir_for_change(dir_to_watch, event_fn):
+def watch_dir_for_change(dirs_to_watch, event_fn):
     event_handler = WatchdogHandler(event_fn)
     observer = Observer()
-    observer.schedule(event_handler, path=dir_to_watch)
+    for directory in dirs_to_watch:
+        observer.schedule(event_handler, path=directory)
     observer.start()
     return observer
 
