@@ -23,6 +23,8 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import yaml
 
+from entropy import exceptions
+
 LOG = logging.getLogger(__name__)
 
 
@@ -139,9 +141,9 @@ def purge_disabled(cfg_file):
 def disable_engine(name, cfg_file):
     engines = load_yaml(cfg_file)
     if not engines:
-        raise Exception("No engines at all!")
+        raise exceptions.NoEnginesException("No known engine!")
     if name not in engines:
-        raise Exception("No such engine!")
+        raise exceptions.NoSuchEngineException("No engines called %s!", name)
     engines[name]['enabled'] = False
     write_yaml(engines, cfg_file, append=False)
     return engines[name]['pid']
