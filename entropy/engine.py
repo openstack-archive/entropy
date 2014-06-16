@@ -66,6 +66,9 @@ class Engine(object):
         self.run_queue = collections.deque()
         # Private variables
         self._watchdog_event_fn = {self.repair_cfg: self.repair_modified}
+        # Private variables to keep track of repair scripts.
+        self._repairs = []
+        self._known_routing_keys = set()
         LOG.info('Created engine obj %s', self.name)
 
     # TODO(praneshp): Move to utils?
@@ -183,6 +186,7 @@ class Engine(object):
             new_additions.sort(key=operator.itemgetter('time'))
             self.run_queue.extend(new_additions)
             LOG.info("Run queue till %s is %s", next_iteration, self.run_queue)
+            LOG.info("Repair scripts at %s: %s", next_iteration, self._repairs)
         except Exception:
             LOG.exception("Could not run serializer for %s at %s",
                           self.name, current_time)
@@ -244,6 +248,7 @@ class Engine(object):
                                   data['routing_key'])
             if message_queue not in self.known_queues:
                 self.known_queues.append(message_queue)
+            self._known_routing_keys.add(data['routing_key'])
             kwargs = data
             kwargs['conf'] = script_args['cfg']
             kwargs['exchange'] = self.entropy_exchange
@@ -252,6 +257,7 @@ class Engine(object):
             self.running_repairs.append(script)
             imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
+            self._repairs.append(future)
             return future
         except Exception:
             LOG.exception("Could not setup %s", script)
