@@ -33,3 +33,16 @@ class EngineStoppedException(EntropyException):
     """Exception raised when engine is shutdown."""
     def __init__(self, message):
         super(EngineStoppedException, self).__init__(message)
+
+
+class NoSuchEngineException(EntropyException):
+    """Exception raised when performing operations on a non-existent engine.
+    """
+    def __init__(self, message):
+        super(NoSuchEngineException, self).__init__(message)
+
+
+class NoEnginesException(EntropyException):
+    """Exception raised when there are no known engines."""
+    def __init__(self, message):
+        super(NoEnginesException, self).__init__(message)
