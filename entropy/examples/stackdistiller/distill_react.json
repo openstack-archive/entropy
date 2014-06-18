@@ -1,0 +1,10 @@
+{
+    "script": "/home/praneshp/code/entropy/entropy/examples/stackdistiller/distill_react"
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "guest",
+    "mq_password": "guest",
+    "routing_key": "distill",
+    "log_file": "/home/praneshp/code/entropy/entropy/examples/stackdistiller/distill.log",
+    "log_format": "%(filename)s %(lineno)s %(message)s"
+}
