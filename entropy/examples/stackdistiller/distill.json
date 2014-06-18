@@ -1,0 +1,12 @@
+{
+    "routing_key": "distill",
+    "schedule" :"*/1 * * * *",
+    "mq_host": "localhost",
+    "mq_port": "5672",
+    "mq_user": "guest",
+    "mq_password": "guest",
+    "module": "/home/praneshp/code/entropy/entropy/examples/stackdistiller/distill", 
+    "routing_key": "demo",
+    "log_file": "/home/praneshp/code/entropy/entropy/examples/stackdistiller/distill.log",
+    "log_format": "%(filename)s %(lineno)s %(message)s"
+}
