@@ -17,32 +17,31 @@
 
 class EntropyException(Exception):
     """Base class for exceptions emitted from entropy."""
-    def __init__(self, message):
+    def __init__(self, message, cause=None):
         super(EntropyException, self).__init__(message)
+        self._cause = cause
+
+    @property
+    def cause(self):
+        return self._cause
 
 
 class TimeoutException(EntropyException):
     """Exceptions because of timeouts, eg. when the job queue has been empty
     really long.
     """
-    def __init__(self, message):
-        super(TimeoutException, self).__init__(message)
 
 
 class EngineStoppedException(EntropyException):
-    """Exception raised when engine is shutdown."""
-    def __init__(self, message):
-        super(EngineStoppedException, self).__init__(message)
+    """Exception raised when operations are performed against an engine that
+    is shutdown.
+    """
 
 
 class NoSuchEngineException(EntropyException):
     """Exception raised when performing operations on a non-existent engine.
     """
-    def __init__(self, message):
-        super(NoSuchEngineException, self).__init__(message)
 
 
 class NoEnginesException(EntropyException):
     """Exception raised when there are no known engines."""
-    def __init__(self, message):
-        super(NoEnginesException, self).__init__(message)
