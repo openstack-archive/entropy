@@ -33,6 +33,8 @@ class SomeConsumer(ConsumerMixin):
     def on_message(self, body, message):
         LOG.warning("React script %s received message: %r", self.name, body)
         message.ack()
+        if body['From'] == 'repair_killer':
+            raise KeyboardInterrupt
         return
 
 
