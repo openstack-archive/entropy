@@ -24,8 +24,11 @@ import tempfile
 
 from concurrent import futures as cf
 import croniter
+from kombu import BrokerConnection
 from kombu import Exchange
 from kombu import Queue
+from kombu.common import maybe_declare
+from kombu.pools import producers
 import pause
 import six
 from stevedore import driver
@@ -75,7 +78,6 @@ class Engine(object):
         self._repairs = []
         self._known_routing_keys = {}
 
-
         # Watchdog-related variables
         self._watchdog_thread = None
 
@@ -84,6 +86,14 @@ class Engine(object):
 
         # State related variables
         self._state = states.ENABLED
+
+        # Variables for mq.
+        self._mq_args = {
+            'mq_user': cfg_data['mq_user'],
+            'mq_password': cfg_data['mq_password'],
+            'mq_host': cfg_data['mq_host'],
+            'mq_port': cfg_data['mq_port']
+        }
 
         LOG.info('Created engine obj %s', self.name)
 
@@ -250,7 +260,10 @@ class Engine(object):
                     repairs_to_delete.append(repair)
         LOG.info('will add new repairs: %s', new_repairs)
         LOG.info('will nuke repairs: %s', repairs_to_delete)
-        self.futures.extend(self.start_react_scripts(new_repairs))
+        if new_repairs:
+            self.futures.extend(self.start_react_scripts(new_repairs))
+        if repairs_to_delete:
+            self.stop_react_scripts(repairs_to_delete)
 
     def start_watchdog(self):
         LOG.debug('Watchdog mapping is: ', self._watchdog_event_fn)
@@ -286,6 +299,43 @@ class Engine(object):
     def _get_react_scripts(self):
         repairs = self._backend_driver.get_repairs()
         return repairs
+
+    def stop_react_scripts(self, repairs_to_stop):
+        # current react scripts
+        LOG.info("Currently running react scripts: %s", self._repairs)
+        for repair in repairs_to_stop:
+            self.stop_react(repair)
+        # react scripts at the end
+        LOG.info("Currently running react scripts: %s", self._repairs)
+
+    def stop_react(self, repair):
+        LOG.info("Stopping react script %s", repair)
+        # Get what the keywords are
+        routing_key = self._known_routing_keys[repair]
+        # remove the keyword from our known set.
+        self._known_routing_keys.pop(repair)
+        # put out a special message, repair script will see that and die.
+        self._send_killer_message(routing_key)
+        LOG.info("Stopped react script %s", repair)
+
+    def _send_killer_message(self, routing_key):
+        # TODO(praneshp): we'll figure out a way to do this better.
+        connection = BrokerConnection('amqp://%(mq_user)s:%(mq_password)s@'
+                                      '%(mq_host)s:%(mq_port)s//' %
+                                      self._mq_args)
+        message = {'From': 'repair_killer',
+                   'Date': str(datetime.datetime.now().isoformat())}
+
+        with producers[connection].acquire(block=True) as producer:
+            try:
+                maybe_declare(self.entropy_exchange, producer.channel)
+                producer.publish(message,
+                                 exchange=self.entropy_exchange,
+                                 routing_key=routing_key,
+                                 serializer='json')
+                LOG.debug("React killer published message")
+            except Exception:
+                LOG.exception("React killer could not send message")
 
     def start_react_scripts(self, repairs):
         futures = []
