@@ -128,7 +128,7 @@ class Engine(object):
         self._watchdog_thread.join()
 
     def schedule(self):
-        while self._state == self.ENABLED:
+        while self._state == states.ENABLED:
             (next_time, next_jobs) = self.wait_next(self.engine_timeout)
             # NOTE(praneshp): here, call a function that will wait till next
             # time and call next_jobs,
@@ -169,12 +169,12 @@ class Engine(object):
         now = datetime.datetime.now()
         cron = croniter.croniter(schedule, now)
         next_iteration = cron.get_next(datetime.datetime)
-        while self._state == self.ENABLED:
+        while self._state == states.ENABLED:
             LOG.info('It is %s, next serializer at %s', now, next_iteration)
             pause.until(next_iteration)
             now = datetime.datetime.now()
             next_iteration = cron.get_next(datetime.datetime)
-            if self._state == self.ENABLED:
+            if self._state == states.ENABLED:
                 self.run_serializer(next_iteration, now)
 
     def run_serializer(self, next_iteration, current_time):
@@ -182,6 +182,7 @@ class Engine(object):
         audits = self._backend_driver.get_audits()
         schedules = {}
         if not audits:
+            LOG.info('No audits to run, returning')
             return
         try:
             for audit_name in audits:
@@ -204,13 +205,14 @@ class Engine(object):
 
             # NOTE(praneshp): Protect this operation with a state check, so in
             # case of race conditions no extra audit scripts are added.
-            if self._state == self.ENABLED:
+            if self._state == states.ENABLED:
                 self.run_queue.extend(new_additions)
             LOG.info("Run queue till %s is %s", next_iteration, self.run_queue)
             LOG.info("Repair scripts at %s: %s", next_iteration, self._repairs)
-        except Exception:
-            LOG.exception("Could not run serializer for %s at %s",
-                          self.name, current_time)
+        except Exception as e:
+            raise exceptions.SerializerException(
+                "Could not run serializer for %s at %s" %
+                (self.name, current_time), e)
 
     def engine_disabled(self):
         engine_config = dict(utils.load_yaml(self.engine_cfg))[self.name]
@@ -220,6 +222,7 @@ class Engine(object):
     def stop_engine(self):
         LOG.info("Stopping engine %s", self.name)
         # Set state to stop, which will stop serializers
+        self._state = states.DISABLED
         # Clear run queue
         LOG.info("Clearing audit run queue for %s", self.name)
         self.run_queue.clear()
@@ -243,7 +246,7 @@ class Engine(object):
         try:
             pause.until(execution_time)
             # Only proceed if engine is running, i.e in enabled state.
-            if self._state != self.ENABLED:
+            if self._state != states.ENABLED:
                 LOG.info("%s is disabled, so not running audits at %s",
                          self.name, execution_time)
                 return
