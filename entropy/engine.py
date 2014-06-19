@@ -118,7 +118,8 @@ class Engine(object):
             self.futures.append(self._serializer)
 
         # Start react scripts.
-        self.futures.extend(self.start_react_scripts())
+        self.futures.extend(self.start_react_scripts(
+            self._get_react_scripts()))
 
         scheduler = self.executor.submit(self.schedule)
         self.futures.append(scheduler)
@@ -236,7 +237,19 @@ class Engine(object):
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
-        self.futures.extend(self.start_react_scripts())
+        repairs = self._get_react_scripts()
+        new_repairs = {}
+        repairs_to_delete = []
+        for repair in repairs:
+            if repair not in self.running_repairs:
+                new_repairs[repair] = repairs[repair]
+        if self.running_repairs:
+            for repair in self.running_repairs:
+                if repair not in repairs:
+                    repairs_to_delete.append(repair)
+        LOG.info('will add new repairs: %s', new_repairs)
+        LOG.info('will nuke repairs: %s', repairs_to_delete)
+        self.futures.extend(self.start_react_scripts(new_repairs))
 
     def start_watchdog(self):
         LOG.debug('Watchdog mapping is: ', self._watchdog_event_fn)
@@ -269,8 +282,11 @@ class Engine(object):
             LOG.exception("Could not run all audits in %s at %s",
                           audit_list, execution_time)
 
-    def start_react_scripts(self):
+    def _get_react_scripts(self):
         repairs = self._backend_driver.get_repairs()
+        return repairs
+
+    def start_react_scripts(self, repairs):
         futures = []
         if repairs:
             for script in repairs:
