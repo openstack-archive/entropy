@@ -54,6 +54,8 @@ def _add_to_list(engine, script_type, script_name, **script_args):
         }
         backend.add_script(script_type, data)
         return True
+    except KeyError:
+        LOG.exception("No %s script called %s", script_type, script_name)
     except Exception:
         LOG.exception("Could not register %s script %s", script_type,
                       script_name)
