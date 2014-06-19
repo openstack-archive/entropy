@@ -45,3 +45,8 @@ class NoSuchEngineException(EntropyException):
 
 class NoEnginesException(EntropyException):
     """Exception raised when there are no known engines."""
+
+
+class SerializerException(EntropyException):
+    """Exception raised when the serializer fails."""
+
