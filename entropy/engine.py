@@ -249,7 +249,10 @@ class Engine(object):
                     repairs_to_delete.append(repair)
         LOG.info('will add new repairs: %s', new_repairs)
         LOG.info('will nuke repairs: %s', repairs_to_delete)
-        self.futures.extend(self.start_react_scripts(new_repairs))
+        if new_repairs:
+            self.futures.extend(self.start_react_scripts(new_repairs))
+        if repairs_to_delete:
+            self.stop_react_scripts(repairs_to_delete)
 
     def start_watchdog(self):
         LOG.debug('Watchdog mapping is: ', self._watchdog_event_fn)
@@ -285,6 +288,20 @@ class Engine(object):
     def _get_react_scripts(self):
         repairs = self._backend_driver.get_repairs()
         return repairs
+
+    def stop_react_scripts(self, repairs_to_stop):
+        # current react scripts
+        LOG.info("Currently running react scripts: %s", self._repairs)
+        for repair in repairs_to_stop:
+            self.stop_react(repair)
+        # react scripts at the end
+        LOG.info("Currently running react scripts: %s", self._repairs)
+
+    def stop_react(self, repair):
+        LOG.info("Stopping react script %s", repair)
+        # Get what the keywords are
+        # remove the keyword from our known set.
+        # put out a special message, repair script will see that and die.
 
     def start_react_scripts(self, repairs):
         futures = []
