@@ -105,6 +105,14 @@ def register_repair(args):
         LOG.info('Registered repair script %s', args.name)
 
 
+def unregister_repair(args):
+    LOG.info('Unregistering repair script %s', args.name)
+    if not args.name and args.engine:
+        LOG.error('Need a repair name and engine to unregister')
+        return
+    _remove_from_list(args.engine, 'repair', args.name)
+
+
 def start_engine(args):
     if not (args.name and args.engine_cfg):
         LOG.error('Need name and engine cfg')
@@ -187,6 +195,15 @@ def parse():
     register_repair_parser.add_argument('-e', dest='engine', action='store',
                                         help='Engine')
     register_repair_parser.set_defaults(func=register_repair)
+
+    unregister_repair_parser = \
+        subparsers.add_parser('unregister-repair',
+                              help='Unregister a repair script')
+    unregister_repair_parser.add_argument('-n', dest='name', action='store',
+                                          help='Repair script name')
+    unregister_repair_parser.add_argument('-e', dest='engine', action='store',
+                                          help='Engine')
+    unregister_repair_parser.set_defaults(func=unregister_repair)
 
     start_engine_parser = subparsers.add_parser('start-engine',
                                                 help='Start an entropy engine')
