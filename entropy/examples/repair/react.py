@@ -17,6 +17,8 @@ import logging
 from kombu import BrokerConnection
 from kombu.mixins import ConsumerMixin
 
+from entropy import exceptions
+
 LOG = logging.getLogger(__name__)
 
 
@@ -33,6 +35,8 @@ class SomeConsumer(ConsumerMixin):
     def on_message(self, body, message):
         LOG.warning("React script %s received message: %r", self.name, body)
         message.ack()
+        if body['From'] == 'repair_killer':
+            raise exceptions.RepairStopException
         return
 
 
@@ -42,7 +46,7 @@ def receive_message(**kwargs):
     with connection as conn:
         try:
             SomeConsumer(conn, **kwargs).run()
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, exceptions.RepairStopException):
             LOG.warning('Quitting %s' % __name__)
 
 

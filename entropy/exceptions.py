@@ -49,3 +49,7 @@ class NoEnginesException(EntropyException):
 
 class SerializerException(EntropyException):
     """Exception raised when the serializer fails."""
+
+
+class RepairStopException(EntropyException):
+    """Exception raised when repair scripts should be stopped"""
