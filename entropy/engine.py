@@ -73,7 +73,7 @@ class Engine(object):
                                    self.engine_cfg: self.engine_disabled}
         # Private variables to keep track of repair scripts.
         self._repairs = []
-        self._known_routing_keys = set()
+        self._known_routing_keys = collections.defaultdict(list)
 
         # Watchdog-related variables
         self._watchdog_thread = None
@@ -314,7 +314,7 @@ class Engine(object):
                                   data['routing_key'])
             if message_queue not in self.known_queues:
                 self.known_queues.append(message_queue)
-            self._known_routing_keys.add(data['routing_key'])
+            self._known_routing_keys[script].append(data['routing_key'])
             kwargs = data
             kwargs['name'] = script
             kwargs['conf'] = script_args['cfg']
