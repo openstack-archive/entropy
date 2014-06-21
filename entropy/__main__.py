@@ -152,13 +152,7 @@ def start_engine(args):
 def stop_engine(args):
     LOG.info("Stopping engine %s", args.name)
     # Grab engine config file, set our engine to disabled
-    pid = utils.disable_engine(args.name, engine_cfg)
-    try:
-        p = psutil.Process(pid)
-        time.sleep(5)
-        p.terminate()
-    except psutil.NoSuchProcess:
-        LOG.exception("No running engine %s", args.name)
+    utils.disable_engine(args.name, engine_cfg)
 
 
 def parse():
