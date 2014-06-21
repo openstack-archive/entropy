@@ -72,8 +72,11 @@ class Engine(object):
         self.futures = []
         self.run_queue = collections.deque()
         # Private variables
-        self._watchdog_event_fn = {self.repair_cfg: self.repair_modified,
-                                   self.engine_cfg: self.engine_disabled}
+        self._watchdog_event_fn = {
+            self.repair_cfg: self.repair_modified,
+            self.engine_cfg: self.engine_disabled,
+            self.audit_cfg: self.audit_modified,
+        }
         # Private variables to keep track of repair scripts.
         self._repairs = []
         self._known_routing_keys = collections.defaultdict(list)
@@ -125,6 +128,7 @@ class Engine(object):
         self.start_scheduler()
 
     def start_scheduler(self):
+        # Start serializer
         if not self._serializer:
             self._serializer = self.executor.submit(self.start_serializer)
             self.futures.append(self._serializer)
@@ -134,13 +138,16 @@ class Engine(object):
         self.futures.extend(self.start_react_scripts(
             self._get_react_scripts()))
 
+        # Start scheduler
         self._scheduler = self.executor.submit(self.schedule)
         self.futures.append(self._scheduler)
-        self._serializer.add_done_callback(self.serializer_callback)
+        self._scheduler.add_done_callback(self.scheduler_callback)
 
         # watchdog
         self._watchdog_thread = self.start_watchdog()
         self._watchdog_thread.join()
+
+        return
 
     def schedule(self):
         while self._state == states.ENABLED:
@@ -255,15 +262,32 @@ class Engine(object):
 
     def stop_engine(self):
         LOG.info("Stopping engine %s", self.name)
-        # Set state to stop, which will stop serializers
+        # Set state to stop, which will stop serializer, and scheduler
         self._state = states.DISABLED
         # Clear run queue
         LOG.info("Clearing audit run queue for %s", self.name)
         self.run_queue.clear()
-        # Stop all repairs - not yet implemented
+
+        # Stop all repairs
+        LOG.info("Stopping all repairs for %s", self.name)
+        repairs_to_stop = self._known_routing_keys.keys()
+        self.stop_react_scripts(repairs_to_stop)
+
+        # Stop the executor - this is a blocking call.
+        LOG.info("Shutting down executor for %s", self.name)
+        self.executor.shutdown()
+
         # Stop watchdog monitoring
         LOG.info("Stopping watchdog for %s", self.name)
-        self._watchdog_thread.stop()
+        # NOTE(praneshp): Till the watchdog authors respond with the right way
+        # to stop watchdog, we'll raise something from here. That will stop
+        # the watchdog thread, go back to the join() in start_scheduler(), and
+        # quit the program
+        raise exceptions.EngineStoppedException(
+            'Fake exception to kill watchdog thread')
+
+    def audit_modified(self):
+        return NotImplemented
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
@@ -287,7 +311,7 @@ class Engine(object):
     def start_watchdog(self):
         LOG.debug('Watchdog mapping is: ', self._watchdog_event_fn)
         dirs_to_watch = [utils.get_filename_and_path(x)[0] for x in
-                         self.engine_cfg, self.repair_cfg]
+                         self.engine_cfg, self.repair_cfg, self.audit_cfg]
         return utils.watch_dir_for_change(dirs_to_watch,
                                           self._watchdog_event_fn)
 
@@ -321,11 +345,9 @@ class Engine(object):
 
     def stop_react_scripts(self, repairs_to_stop):
         # current react scripts
-        LOG.info("Currently running react scripts: %s", self._repairs)
         for repair in repairs_to_stop:
             self.stop_react(repair)
         # react scripts at the end
-        LOG.info("Currently running react scripts: %s", self._repairs)
 
     def stop_react(self, repair):
         LOG.info("Stopping react script %s", repair)
