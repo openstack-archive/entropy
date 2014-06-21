@@ -9,5 +9,5 @@
     "mq_password": "guest",
     "routing_key": "demo",
     "log_file": "/home/praneshp/code/entropy/entropy/examples/logs/demo.log",
-    "log_format": "%(filename)s %(lineno)s %(message)s"
+    "log_format": "%(asctime)s %(lineno)s %(message)s"
 }

@@ -155,7 +155,8 @@ def stop_engine(args):
     pid = utils.disable_engine(args.name, engine_cfg)
     try:
         p = psutil.Process(pid)
-        time.sleep(5)
+        time.sleep(180)
+        print 'Terminating at', utils.wallclock()
         p.terminate()
     except psutil.NoSuchProcess:
         LOG.exception("No running engine %s", args.name)

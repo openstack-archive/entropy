@@ -109,7 +109,9 @@ def watch_dir_for_change(dirs_to_watch, event_fn):
     event_handler = WatchdogHandler(event_fn)
     observer = Observer()
     for directory in dirs_to_watch:
-        observer.schedule(event_handler, path=directory)
+        x = observer.schedule(event_handler, path=directory)
+        print type(x), x
+    observer.setDaemon(True)
     observer.start()
     return observer
 

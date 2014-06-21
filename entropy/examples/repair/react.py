@@ -13,6 +13,7 @@
 # under the License.
 import json
 import logging
+import threading
 
 from kombu import BrokerConnection
 from kombu.mixins import ConsumerMixin
@@ -34,6 +35,7 @@ class SomeConsumer(ConsumerMixin):
 
     def on_message(self, body, message):
         LOG.warning("React script %s received message: %r", self.name, body)
+        LOG.warning('React script running on thread %s', threading.currentThread().name)
         message.ack()
         if body['From'] == 'repair_killer':
             raise exceptions.RepairStopException
