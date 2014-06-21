@@ -21,6 +21,7 @@ import logging
 import operator
 import os
 import tempfile
+import threading
 
 from concurrent import futures as cf
 import croniter
@@ -48,7 +49,7 @@ class Engine(object):
         # Well known file where all engines are stored.
         self.engine_cfg = os.path.join(tempfile.gettempdir(), 'engines.cfg')
         # TODO(praneshp): Hardcode for now, could/should be cmdline input
-        self.max_workers = 8
+        self.max_workers = 16
         self._engine_cfg_data = cfg_data
         self.audit_type = 'audit'
         self.repair_type = 'repair'
@@ -83,6 +84,7 @@ class Engine(object):
 
         # Serializer related variables
         self._serializer = None
+        self._scheduler = None
 
         # State related variables
         self._state = states.ENABLED
@@ -132,12 +134,22 @@ class Engine(object):
         self.futures.extend(self.start_react_scripts(
             self._get_react_scripts()))
 
-        scheduler = self.executor.submit(self.schedule)
-        self.futures.append(scheduler)
+        self._scheduler = self.executor.submit(self.schedule)
+        self.futures.append(self._scheduler)
+
+        self._serializer.add_done_callback(self.foo)
+        self._scheduler.add_done_callback(self.foo)
 
         # watchdog
         self._watchdog_thread = self.start_watchdog()
         self._watchdog_thread.join()
+
+    def foo(self, future):
+        print future, ': called me'
+        for future in self.futures:
+            if not future.done():
+                return
+        print self.futures
 
     def schedule(self):
         while self._state == states.ENABLED:
@@ -146,6 +158,8 @@ class Engine(object):
             # time and call next_jobs,
             if next_jobs:
                 self.setup_audit(next_time, next_jobs)
+        #print 'Engine set to', self._state, 'so quitting scheduler, futures are', self.futures
+        #print 'before quitting scheduler, serializer is', self._serializer
 
     def wait_next(self, timeout=None):
         watch = None
@@ -157,6 +171,8 @@ class Engine(object):
             while True:
                 if not self.run_queue:
                     if watch and watch.expired():
+                        # Remove this before submitting
+                        LOG.info("React scripts %s", self._repairs)
                         raise exceptions.TimeoutException(
                             "Died at %s after waiting for audits to arrive "
                             "for %s" % (utils.wallclock(), watch.elapsed()))
@@ -191,6 +207,10 @@ class Engine(object):
                     self.run_serializer(next_iteration, now)
                 except exceptions.SerializerException:
                     LOG.exception("Could not run serializer")
+            else:
+                pass
+                #print 'Engine set to', self._state, 'so quitting serializer, futures are', self.futures
+                #print 'before quitting serializer, scheduler is', self._scheduler
 
     def run_serializer(self, next_iteration, current_time):
         LOG.info("Running serializer for %s at %s", self.name, current_time)
@@ -236,15 +256,32 @@ class Engine(object):
 
     def stop_engine(self):
         LOG.info("Stopping engine %s", self.name)
-        # Set state to stop, which will stop serializers
+        # Set state to stop, which will stop serializer, and scheduler
         self._state = states.DISABLED
         # Clear run queue
         LOG.info("Clearing audit run queue for %s", self.name)
         self.run_queue.clear()
-        # Stop all repairs - not yet implemented
+
+        # Stop all repairs
+        LOG.info("Stopping all repairs for %s", self.name)
+        repairs_to_stop = self._known_routing_keys.keys()
+        self.stop_react_scripts(repairs_to_stop)
+
+        # Stop the executor
+        LOG.info("Shutting down executor for %s", self.name)
+        self.executor.shutdown()
+        print 'Shutdown Executor'
+        print self.futures
+
         # Stop watchdog monitoring
         LOG.info("Stopping watchdog for %s", self.name)
-        self._watchdog_thread.stop()
+        print threading.enumerate()
+        print dir(self._watchdog_thread)
+        print 'Observer thread is, ', self._watchdog_thread.getName()
+        print 'Current thread is', threading.current_thread().name
+        self._watchdog_thread.unschedule_all()
+        print threading.enumerate()
+        print 'reached here'
 
     def repair_modified(self):
         LOG.info('Repair configuration changed')
@@ -289,6 +326,7 @@ class Engine(object):
                 future = self.executor.submit(self.run_audit,
                                               audit_name=audit_name,
                                               **audit_cfg)
+                print 'Future for ', audit_name, 'is', future
                 audit_futures.append(future)
             if audit_futures:
                 self.futures.extend(audit_futures)
@@ -302,11 +340,9 @@ class Engine(object):
 
     def stop_react_scripts(self, repairs_to_stop):
         # current react scripts
-        LOG.info("Currently running react scripts: %s", self._repairs)
         for repair in repairs_to_stop:
             self.stop_react(repair)
         # react scripts at the end
-        LOG.info("Currently running react scripts: %s", self._repairs)
 
     def stop_react(self, repair):
         LOG.info("Stopping react script %s", repair)
@@ -377,6 +413,7 @@ class Engine(object):
             self.running_repairs.append(script)
             imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
+            future.add_done_callback(self.foo)
             self._repairs.append(future)
             return future
         except Exception:
