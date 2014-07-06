@@ -83,6 +83,7 @@ class Engine(object):
 
         # Serializer related variables
         self._serializer = None
+        self._scheduler = None
 
         # State related variables
         self._state = states.ENABLED
@@ -127,13 +128,15 @@ class Engine(object):
         if not self._serializer:
             self._serializer = self.executor.submit(self.start_serializer)
             self.futures.append(self._serializer)
+            self._serializer.add_done_callback(self.serializer_callback)
 
         # Start react scripts.
         self.futures.extend(self.start_react_scripts(
             self._get_react_scripts()))
 
-        scheduler = self.executor.submit(self.schedule)
-        self.futures.append(scheduler)
+        self._scheduler = self.executor.submit(self.schedule)
+        self.futures.append(self._scheduler)
+        self._serializer.add_done_callback(self.serializer_callback)
 
         # watchdog
         self._watchdog_thread = self.start_watchdog()
@@ -146,6 +149,22 @@ class Engine(object):
             # time and call next_jobs,
             if next_jobs:
                 self.setup_audit(next_time, next_jobs)
+
+    def react_callback(self, future):
+        LOG.info('Callback for react script: %s', future)
+        for future in self._repairs:
+            if not future.done():
+                LOG.info('Not all react scripts are done yet')
+                return
+        LOG.info('All known react scripts complete')
+
+    def serializer_callback(self, future):
+        LOG.info('Callback for serializer, finished state is: %s',
+                 self._serializer.done())
+
+    def scheduler_callback(self, future):
+        LOG.info('Callback for scheduler, finished state is: %s',
+                 self._scheduler.done())
 
     def wait_next(self, timeout=None):
         watch = None
@@ -377,6 +396,7 @@ class Engine(object):
             self.running_repairs.append(script)
             imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
+            future.add_done_callback(self.react_callback)
             self._repairs.append(future)
             return future
         except Exception:
