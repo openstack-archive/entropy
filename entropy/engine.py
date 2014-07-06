@@ -17,6 +17,7 @@
 
 import collections
 import datetime
+import functools
 import logging
 import operator
 import os
@@ -83,6 +84,7 @@ class Engine(object):
 
         # Serializer related variables
         self._serializer = None
+        self._scheduler = None
 
         # State related variables
         self._state = states.ENABLED
@@ -127,13 +129,19 @@ class Engine(object):
         if not self._serializer:
             self._serializer = self.executor.submit(self.start_serializer)
             self.futures.append(self._serializer)
+            self._serializer.add_done_callback(
+                functools.partial(self.future_callback,
+                                  future_type='serializer'))
 
         # Start react scripts.
         self.futures.extend(self.start_react_scripts(
             self._get_react_scripts()))
 
-        scheduler = self.executor.submit(self.schedule)
-        self.futures.append(scheduler)
+        self._scheduler = self.executor.submit(self.schedule)
+        self.futures.append(self._scheduler)
+        self._scheduler.add_done_callback(
+            functools.partial(self.future_callback,
+                              future_type='scheduler'))
 
         # watchdog
         self._watchdog_thread = self.start_watchdog()
@@ -146,6 +154,19 @@ class Engine(object):
             # time and call next_jobs,
             if next_jobs:
                 self.setup_audit(next_time, next_jobs)
+
+    def future_callback(self, future, future_type='unknown_type',
+                        name='no_name', **kwargs):
+        if future_type in ['serializer', 'scheduler']:
+            LOG.info('Call back for %s, finished state %s',
+                     future_type, future.done())
+            return
+        if future_type == 'react':
+            LOG.info('Callback for react script %s', name)
+            for future in self._repairs:
+                if not future.done():
+                    LOG.info('Not all react scripts are done yet')
+                    return
 
     def wait_next(self, timeout=None):
         watch = None
@@ -377,6 +398,10 @@ class Engine(object):
             self.running_repairs.append(script)
             imported_module = imp.load_module(react_script, *available_modules)
             future = self.executor.submit(imported_module.main, **kwargs)
+            future.add_done_callback(
+                functools.partial(self.future_callback,
+                                  future_type='react',
+                                  name=kwargs['name']))
             self._repairs.append(future)
             return future
         except Exception:
