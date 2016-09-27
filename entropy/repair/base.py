@@ -13,13 +13,13 @@
 # under the License.
 import abc
 import logging
-
+import six
 
 LOG = logging.getLogger(__name__)
 
 
+@six.add_metaclass(abc.ABCMeta)
 class RepairBase(object):
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def send_message(self, **kwargs):

@@ -13,14 +13,15 @@
 # under the License.
 import abc
 import logging
+import six
 
 from entropy import utils
 
 LOG = logging.getLogger(__name__)
 
 
+@six.add_metaclass(abc.ABCMeta)
 class AuditBase(object):
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, **kwargs):
         utils.reset_logger(logging.getLogger())
