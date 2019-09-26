@@ -1,8 +1,0 @@
-{
-    "name" : "vmbooter",
-    "script": "vmbooter",
-    "mq_host": "localhost",
-    "mq_port": "5672",
-    "mq_user": "",
-    "mq_password": ""
-}

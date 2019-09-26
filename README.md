@@ -1,3 +1,3 @@
-Framework for audit/repair scripts for openstack
+# This repo has moved to OpenDev
 
-https://wiki.openstack.org/wiki/Entropy
+It can now be found at [https://opendev.org/x/entropy](https://opendev.org/x/entropy)
